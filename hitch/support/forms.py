@@ -74,7 +74,7 @@ class FormMixin(object):
         return bound.field.prepare_value(value)
     
     def _initialize_metadata(self):
-        pass
+        self._field_metadata = self.metadata.get('fields') or {}
     
 class Form(FormMixin, forms.Form):
     def __init__(self, *args, **params):

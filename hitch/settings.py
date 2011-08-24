@@ -50,6 +50,8 @@ MIDDLEWARE_CLASSES = (
     #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'hitch.core.account.middleware.AuthenticationMiddleware',
+    'hitch.support.logs.ContextualLoggingMiddleware',
+    'hitch.support.middleware.UncaughtExceptionMiddleware',
 )
 
 INSTALLED_APPS = (
@@ -79,6 +81,14 @@ LOGGING = {
         },
     }
 }
+
+def CONFIGURE_LOGGING():
+    from hitch.support.logs import DefaultFormatter
+    log = logging.getLogger('hitch')
+    log.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    handler.setFormatter(DefaultFormatter)
+    log.addHandler(handler)
 
 try:
     from settings_local import *

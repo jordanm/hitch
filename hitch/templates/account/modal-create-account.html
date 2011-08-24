@@ -1,6 +1,8 @@
 {% import 'support/layout.html' as layout %}
 {% call layout.modal('modal-create-account', 'Create an account') %}
 <div class="modal-content">
-{{ form }}
+  <form id="modal-create-account-form" action="{{ url('account-create') }}" method="post">
+    {{ layout.formfields(form) }}
+  </form>
 </div>
 {% endcall %} 

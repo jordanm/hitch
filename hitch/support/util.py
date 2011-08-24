@@ -13,7 +13,10 @@ def choices(choices, capitalize=True):
         values.append((choice, (choice.capitalize() if capitalize else choice)))
     else:
         return tuple(values)
-    
+
+def format_mapped_data(data):
+    return ', '.join(['%s=%s' % (k, v) for k, v in sorted(data.items())])
+
 def escape_html(value):
     return unicode(_escape_html(unicode(value)))
 

@@ -110,6 +110,10 @@ def pluralize(value, number=2, alternative=None):
     else:
         return (_pluralize(value) if number != 1 else value)
 
+@environment.filter
+def typename(value):
+    return type(value).__name__
+
 @environment.function
 @contextfunction
 def url(context, view=None, url=None, absolute=False, domain=None, query=None,

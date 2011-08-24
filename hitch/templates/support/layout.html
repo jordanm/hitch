@@ -9,3 +9,75 @@
   </div>
 </div>
 {% endmacro %}
+
+{% macro _script_block() %}
+<script type="text/javascript">$(function(){ {{ caller() }} });</script>
+{% endmacro %}
+
+{% macro textbox(field, metadata, regexp=None, type='text') %}
+<input id="{{ field.auto_id }}" type="{{ type }}" name="{{ field.html_name }}"
+  {% if field.initial_value and field.initial_value.value %}value="{{ field.initial_value.value }}"{% endif %}/>
+{% endmacro %}
+
+{% macro _construct_field_widget(field) %}
+{% set field_type = field.field|typename %}
+{% set widget = field.field.widget|typename %}
+{% set metadata = field.metadata.get('widget') or {} %}
+{% if widget == 'Select' %}
+
+{% elif widget == 'PasswordInput' %}
+  {{ textbox(field, metadata, type='password') }}
+{% elif widget == 'TextInput' %}
+  {% if field_type == 'DecimalField' %}
+  
+  {% else %}
+    {{ textbox(field, metadata) }}
+  {% endif %}
+{% elif widget == 'DateInput' or widget == 'DateTimeInput' %}
+
+{% else %}
+  {{ widget }}
+{% endif %}
+{% endmacro %}
+
+{% macro formfield(form, field, classes='') %}
+<div id="{{ field.auto_id }}-container" class="field {{ classes }} {{ 'required' if field.field.required }}">
+  <div class="field-label-container">
+    <label for="{{ field.auto_id }}">{{ field.metadata.label|d(field.label) }}</label>
+  </div>
+  <div class="field-widget-container">
+    {{ caller() }}
+    <div class="field-error"></div>
+  </div>
+  <div class="clear"></div>
+</div>
+{% endmacro %}
+
+{% macro _render_formfields(_form, _fields, exclude=None) %}
+  {% for _field in _fields %}
+    {% if not exclude or _field.name not in exclude %}
+      {% if _field.is_hidden %}
+        {{ _field.as_hidden() }}
+      {% else %}
+        {% call formfield(_form, _field) %}
+          {{ _construct_field_widget(_field) }}
+        {% endcall %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+{% endmacro %}
+
+{% macro formfields(_form, field_names=None, exclude=None) %}
+  {% set _caller = caller %}
+  {% if field_names %}
+    {{ _render_formfields(_form, _form.enumerate_fields(field_names), exclude) }}
+    {% if _caller %}
+      {{ _caller() }}
+    {% endif %}
+  {% else %}
+    {{ _render_formfields(_form, _form, exclude) }}
+    {% if _caller %}
+      {{ _caller() }}
+    {% endif %}
+  {% endif %}
+{% endmacro %}
