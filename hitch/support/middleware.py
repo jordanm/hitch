@@ -25,10 +25,9 @@ class UncaughtExceptionMiddleware(object):
         if isinstance(exception, Http404):
             return
         
-        lines = ['uncaught %s: %s' % (type(exception).__name__, str(exception))]
-        lines.append('url: %s%s' % (request.META['HTTP_HOST'], request.get_full_path()))
+        lines = ['UNCAUGHT %s: %s' % (type(exception).__name__, str(exception))]
         if request.GET:
-            lines.append('get: %s' % format_mapped_data(request.GET))
+            lines.append('GET: %s' % format_mapped_data(request.GET))
         elif request.POST:
-            lines.append('post: %s' % format_mapped_data(request.POST))
+            lines.append('POST: %s' % format_mapped_data(request.POST))
         log.exception('\n'.join(lines))

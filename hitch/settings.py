@@ -51,6 +51,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'hitch.core.account.middleware.AuthenticationMiddleware',
     'hitch.support.logs.ContextualLoggingMiddleware',
+    'hitch.support.logs.RequestLoggingMiddleware',
     'hitch.support.middleware.UncaughtExceptionMiddleware',
 )
 
@@ -62,6 +63,12 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'hitch.core',
     'south',
+)
+
+MODELS_IGNORED_WHEN_DELETED = (
+    'django.contrib.auth.models.Message',
+    'hitch.core.account.models.PasswordReset',
+    'hitch.core.account.models.PersistentLogin',
 )
 
 LOGGING = {
@@ -82,9 +89,8 @@ LOGGING = {
     }
 }
 
-def CONFIGURE_LOGGING():
+def CONFIGURE_LOGGING(log):
     from hitch.support.logs import DefaultFormatter
-    log = logging.getLogger('hitch')
     log.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
     handler.setFormatter(DefaultFormatter)

@@ -20,6 +20,10 @@ def format_mapped_data(data):
 def escape_html(value):
     return unicode(_escape_html(unicode(value)))
 
+def identify_instance(instance):
+    implementation = type(instance)
+    return '%s.%s' % (implementation.__module__, implementation.__name__)
+
 PLURALIZATION_TOKENS = {
     'is': 'are',
     'was': 'were',
@@ -42,7 +46,15 @@ def pluralize(word):
                 return target.sub(replacement, word)
         else:
             return word + 's'
-        
+
+def receives_signals(signals, sender=None):
+    signals = (signals if isinstance(signals, (list, tuple)) else [signals])
+    def decorator(function):
+        for signal in signals:
+            signal.connect(function, sender)
+        return function
+    return decorator
+
 def static_serve_url(path, root):
     return url(r'^%s(?P<path>.*)$' % path.lstrip('/'), serve_static_files, {'document_root': root})
 
