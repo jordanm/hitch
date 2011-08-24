@@ -1,0 +1,4 @@
+Django
+jinja2
+psycopg2
+South

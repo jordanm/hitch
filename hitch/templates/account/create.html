@@ -1,0 +1,7 @@
+{% extends 'shell.html' %}
+{% block content %}
+<form action="{{ url('account-create') }}" method="post">
+  {{ form }}
+  <button type="submit">create account</button>
+</form>
+{% endblock content %}

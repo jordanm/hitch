@@ -1,0 +1,6 @@
+*.egg-info
+*.py[c|o]
+*.swp
+settings_local.py
+.project
+.pydevproject

@@ -1,0 +1,20 @@
+{% extends 'shell.html' %}
+{% set js_module = 'views/season' %}
+{% block content %}
+{{ season.title }}
+<a id="create-team">Create a team</a>
+<div id="test-modal" class="modal flash-message-container">
+  <div class="modal-header">
+    <h1>Create a team</h1>
+    <div class="modal-close-button"></div>
+  </div>
+  <div class="modal-container">
+    <div class="modal-content">
+      <input type="text" name="i" size="20"/>
+    </div>
+    <div class="modal-footer">
+      <button>Create</button>
+    </div>
+  </div>
+</div>
+{% endblock content %}

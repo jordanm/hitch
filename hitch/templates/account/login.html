@@ -1,0 +1,7 @@
+{% extends 'shell.html' %}
+{% block content %}
+<form action="{{ url('account-login') }}" method="post">
+  {{ form }}
+  <button type="submit">login</button>
+</form>
+{% endblock content %}
