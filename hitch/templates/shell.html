@@ -1,11 +1,12 @@
-<!doctype html>
-<html xmlns:fb="http://www.facebook.com/2008/fbml">
+<!DOCTYPE html>
+<html>
 <head>
 
-  <title>{% block title %}{{ full_page_title }}{% endblock %}</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
+  <meta name="description" content=""/>
   
-  <meta http-equiv="content-type" content="text/html;charset=UTF-8"/>
-  <meta name="robots" content="noodp,noydir"/>
+  <title>{% block title %}{{ page_title }}{% endblock %}</title>
   
   <script type="text/javascript">var require = {baseUrl: "/static/js"};</script>
   <script data-main="{{ js_module }}" src="/static/js/require-jquery.js"></script>
@@ -14,6 +15,9 @@
   <link rel="stylesheet" type="text/css" href="/static/css/fonts.css"/>
   <link rel="stylesheet" type="text/css" href="/static/css/base.css"/>
   
+  <link rel="shortcut icon" type="image/x-icon" href="/static/img/favicon.ico"/>
+  
+ 
 </head>
 <body>
 
