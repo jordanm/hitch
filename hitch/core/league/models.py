@@ -13,6 +13,9 @@ class ScoringPolicy(Model):
         
     id = UniqueIdentifierField()
     name = CharField('Name', unique=True)
+    round_pts = models.IntegerField('Round Points', null=False)
+    spread_pts = models.IntegerField('Spread Points', null=False)
+    match_pts = models.IntegerField('Match Points', null=False)
     
     def __unicode__(self):
         return self.name
@@ -21,7 +24,7 @@ class Season(Model):
     class Meta:
         app_label = 'core'
     
-    StatusTokens = ('planned', 'active', 'finished')
+    StatusTokens = ('planned', 'open', 'active', 'finished')
         
     id = UniqueIdentifierField()
     status = CharField('Status', choices=choices(StatusTokens), default='planned')
@@ -63,15 +66,28 @@ class Member(Model):
     
     def __unicode__(self):
         return '%s - %s' % (self.team.name, self.account.fullname)
-    
+
+
+class Week(Model):
+    class Meta:
+        app_label = 'core'
+
+    id = UniqueIdentifierField()
+    season = models.ForeignKey(Season, related_name='weeks')
+    week = models.IntegerField('Week')
+    date = models.DateField('Week Date', null=False)
+
+    def __unicode__(self):
+        return '%s - %d' % (self.season.name, self.week)
+
 class Match(Model):
     class Meta:
         app_label = 'core'
-        unique_together = ('season', 'match', 'home_team', 'away_team')
+        unique_together = ('season', 'week', 'home_team', 'away_team')
         
     id = UniqueIdentifierField()
     season = models.ForeignKey(Season, related_name='matches')
-    match = models.IntegerField('Match')
+    week = models.ForeignKey(Week, related_name='matches')
     home_team = models.ForeignKey(Team, related_name='home_matches')
     away_team = models.ForeignKey(Team, related_name='away_matches')
     occurrence = models.DateField('Occurrence', null=True, blank=True)
@@ -92,3 +108,4 @@ class Round(Model):
     
     def __unicode__(self):
         return '%s (round %d)' % (self.match, self.round)
+
