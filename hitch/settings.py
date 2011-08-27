@@ -19,6 +19,7 @@ LANGUAGE_CODE = 'en-us'
 USE_I18N = True
 USE_L10N = True
 
+HTTPS_SCHEME = 'http'
 SITE_ID = 1
 SECRET_KEY = '8agre=s-lropumj*x(zlzs$ehtkeptkth@ip!o&7bu7)f1zdtc'
 
