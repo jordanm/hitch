@@ -7,7 +7,7 @@ from hitch.support.forms import Form, ModelForm
 
 class SeasonForm(ModelForm):
     class Meta:
-        fields = ('id', 'name', 'start_date', 'end_date', 'match_count')
+        fields = ('id', 'title', 'name', 'start_date', 'end_date', 'match_count')
         model = models.Season
         
     def __init__(self, **params):

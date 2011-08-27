@@ -165,6 +165,18 @@ define(['jquery', 'jquery.tools'], function($) {
             }
             return message;
         },
+        install_modal_loader: function(selector, params) {
+            var self = this;
+            $(selector).click(function(event) {
+                var modal = $(this).data('modal');
+                if(modal) {
+                    modal.show();
+                } else {
+                    params.show_immediately = true;
+                    $(this).data('modal', new self.modal(params));
+                }
+            });
+        },
         modal: modal,
         post: function(params) {
             var data = '', self = this;

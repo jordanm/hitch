@@ -6,6 +6,7 @@ from json import dumps
 from django.conf import settings
 from django.conf.urls.defaults import patterns, url
 from django.contrib.messages import DEFAULT_TAGS, add_message
+from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.utils.http import urlquote
@@ -19,6 +20,7 @@ log = logging.getLogger(__name__)
 
 def viewable(name, path, **params):
     params.update(name=name, path=path, viewable=True)
+    params['ajax_only'] = params.get('ajax_only', False)
     params['authenticated'] = params.get('authenticated', False)
     params['secured'] = (params.get('secured', False) and HTTPS_SCHEME == 'https')
     
@@ -35,6 +37,11 @@ class Response(object):
         self.messages = []
         self.request = request
         self.view = view
+        
+    def authorize(self, permission):
+        account = self.request.account
+        if not (account and account.superuser):
+            raise PermissionDenied()
         
     def collect(self, form):
         self.data.update(field_errors=[], form_errors=[])
@@ -153,11 +160,28 @@ class ViewSet(object):
         
     def __call__(self, request, *args, **params):
         request.view = getattr(self, self._view)
+        if request.view.ajax_only and not request.is_ajax():
+            log.debug('rejecting non-ajax request to ajax only view')
+            return HttpResponseBadRequest()
         if request.view.secured and not request.is_secure():
-            return HttpResponseRedirect('https://%s%s' % (request.META['HTTP_HOST'], request.get_full_path()))
+            if request.is_ajax():
+                log.debug('rejecting unsecured ajax request to secured view') 
+                return HttpResponseBadRequest()
+            else:
+                log.debug('redirecting unsecured request to secured view')
+                return HttpResponseRedirect('https://%s%s' % (request.META['HTTP_HOST'], request.get_full_path()))
         if request.view.authenticated and not request.account:
-            return HttpResponseRedirect('%s://%s%s?next=%s' % (HTTPS_SCHEME, request.META['HTTP_HOST'],
-                reverse('account-login'), urlquote(request.get_full_path())))
+            if request.is_ajax():
+                log.debug('rejecting unauthenticated ajax request to authenticated view')
+                return HttpResponseBadRequest()
+            else:
+                log.debug('redirecting unauthenticated request to authenticated view')
+                return HttpResponseRedirect('%s://%s%s?next=%s' % (HTTPS_SCHEME, request.META['HTTP_HOST'],
+                    reverse('account-login'), urlquote(request.get_full_path())))
             
         response = Response(request, self)
-        return request.view(request, response, *args, **params)
+        try:
+            return request.view(request, response, *args, **params)
+        except PermissionDenied:
+            log.debug('rejecting request due to insufficient permissions')
+            return response.ignore()
