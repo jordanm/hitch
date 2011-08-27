@@ -47,6 +47,12 @@ define(['jquery', 'jquery.tools'], function($) {
                 this.show();
             }
         },
+        hide: function(remove) {
+            this.modal.overlay().close();
+            if(remove) {
+                this.modal.remove();
+            }
+        },
         load: function() {
             var self = this, source = this.source;
             $.ajax({

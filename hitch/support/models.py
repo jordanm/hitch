@@ -62,6 +62,8 @@ class Model(models.Model):
     class Meta:
         abstract = True
     
+    objects = Manager()
+    
     def update(self, data=None, clean=False, **params):
         return type(self).objects.update_with_mapping(self, data, clean=clean, **params)
 

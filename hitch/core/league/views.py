@@ -24,9 +24,20 @@ class LeagueViews(Views):
                 return response.ignore()
             
         if request.posting:
-            form = forms.SeasonForm(request.POST)
+            form = forms.SeasonForm(data=request.POST, instance=season)
+            if form.is_valid():
+                try:
+                    season = form.create_or_update(clean=True)
+                except Exception:
+                    log.exception('unhandled exception during season modification')
+                    response.message('An unknown error has occurred.', 'error')
+                    return response.error().json()
+                else:
+                    return response.json(id=season.id, url=reverse('season', args=[season.name])) 
+            else:
+                return response.collect(form).error('invalid-submission').json()
         else:
-            form = forms.SeasonForm()
+            form = forms.SeasonForm(instance=season)
             return response.render('league/modal-modify-season.html', form=form)
 
     @viewable('modify-team', r'^a/modify-team')
@@ -56,6 +67,6 @@ class LeagueViews(Views):
         
         return response.render('league/season.html', season=season)
     
-    @viewable('seasons', r'^season')
+    @viewable('seasons', r'^seasons')
     def seasons(self, request, response):
         return response.render('league/seasons.html')

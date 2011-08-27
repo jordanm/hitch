@@ -18,7 +18,8 @@ class FormMixin(object):
     
     def __iter__(self):
         for name, field in self.fields.items():
-            yield self._bind_field(name, field)
+            if not getattr(field, 'omitted', False):
+                yield self._bind_field(name, field)
             
     def add_error(self, field, message):
         self._errors.setdefault(field, ErrorList()).append(message)
@@ -29,6 +30,11 @@ class FormMixin(object):
             self.initial[field] = value
         if required is not None:
             self.fields[field].required = required
+        return self
+    
+    def omit(self, field):
+        self.fields[field].omitted = True
+        self.fields[field].required = False
         return self
         
     def require(self, field, required=True):
@@ -83,15 +89,19 @@ class Form(FormMixin, forms.Form):
         
 class ModelForm(FormMixin, forms.ModelForm):
     def __init__(self, *args, **params):
+        self._instance_specified = bool(params.get('instance'))
         super(ModelForm, self).__init__(*args, **params)
+        
         self._initialize_metadata()
+        if not self._instance_specified:
+            self.omit(self._meta.model._meta.pk.name)
         
     def create(self, clean=False, exclusions=None, m2m=True, **params):
         return self._meta.model._default_manager.create_with_mapping(self.todict(),
             clean=clean, exclusions=exclusions, m2m=m2m, **params)
     
     def create_or_update(self, clean=False, exclusions=None, m2m=True, **params):
-        method = (self.update if self.instance else self.create)
+        method = (self.update if self._instance_specified else self.create)
         return method(clean=clean, exclusions=exclusions, m2m=m2m, **params)
     
     def update(self, clean=False, exclusions=None, m2m=True, **params):

@@ -14,6 +14,16 @@
 <script type="text/javascript">$(function(){ {{ caller() }} });</script>
 {% endmacro %}
 
+{% macro dateinput(field, metadata) %}
+<input id="{{ field.auto_id }}" type="date" name="{{ field.html_name }}"
+  {% if field.initial_value and field.initial_value.value %}value="{{ field.initial_value.value }}"{% endif %}/>
+<script type="text/javascript">
+$(function() {
+    $('#{{ field.auto_id }}').dateinput();
+});
+</script>
+{% endmacro %}
+
 {% macro textbox(field, metadata, regexp=None, type='text') %}
 <input id="{{ field.auto_id }}" type="{{ type }}" name="{{ field.html_name }}"
   {% if field.initial_value and field.initial_value.value %}value="{{ field.initial_value.value }}"{% endif %}/>
@@ -34,7 +44,7 @@
     {{ textbox(field, metadata) }}
   {% endif %}
 {% elif widget == 'DateInput' or widget == 'DateTimeInput' %}
-
+  {{ dateinput(field, metadata) }}
 {% else %}
   {{ widget }}
 {% endif %}

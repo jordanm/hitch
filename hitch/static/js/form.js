@@ -55,6 +55,7 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
         self.form.submit(function(event) {
             return self.submit();
         });
+        self.form.data('form', self);
     };
     $.extend(form.prototype, {
         focus: function(element) {
