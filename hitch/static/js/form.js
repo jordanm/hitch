@@ -1,14 +1,3 @@
-define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
-    
-
-    var form = function(params) {
-        this.errors = [];
-        this.messages = [];
-        this.tooltip = null;
-        
-    };
-});
-
 
 
 
@@ -49,12 +38,23 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
 define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
     var form = function(params) {
         var self = this;
+        $.extend(self, {
+            errors: [],
+            form: null,
+            messages: [],
+            onerror: null,
+            onsuccess: null,
+            tooltip: null,
+        });
         $.extend(self, params);
-        self.button = params.submit_button || self.form.find('button');
-        self.errors = [];
-        self.marks = {};
-        self.messages = [];
-        self.tooltip = null;
+        if(typeof self.form == 'string') {
+            self.form = $(self.form);
+        }
+        self.method = self.method || self.form.attr('method') || 'POST';
+        self.url = self.url || self.form.attr('action');
+        self.form.submit(function(event) {
+            return self.submit();
+        });
     };
     $.extend(form.prototype, {
         focus: function(element) {
@@ -75,7 +75,6 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
         submit: function(event) {
             var self = this;
             if(self.validate()) {
-                self.presubmit();
                 var data = self.serialize();
                 if(self.data) {
                     $.extend(data, self.data);
@@ -84,7 +83,26 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
                     cache: false,
                     data: $.param(data, true),
                     dataType: 'json',
-                    type: 'POST',
+                    type: self.method,
+                    url: self.url,
+                    success: function(response) {
+                        if(response.messages) {
+                        
+                        }
+                        if(response.error) {
+                            if(response.field_errors) {
+                            
+                            }
+                            if(response.form_errors) {
+                            
+                            }
+                            self.onerror(self, response.error);
+                        } else {
+                            self.onsuccess(self, response);
+                        }
+                    },
+                    error: function() {
+                    }
                 });
             }
             if(event) {

@@ -62,7 +62,7 @@ class AccountViews(Views):
                 if account:
                     if account.status == 'active':
                         account.login(request)
-                        if form.cleaned_data['persistent']:
+                        if form.cleaned_data.get('persistent', False):
                             account.persist_login(response)
                         if request.is_ajax():
                             return response.json(url=target)
@@ -82,6 +82,17 @@ class AccountViews(Views):
             form = forms.LoginForm()
             
         if request.is_ajax():
-            pass
+            return response.render('account/modal-login.html', form=form)
         else:
             return response.render('account/login.html', form=form, target=target)
+        
+    @viewable('account-logout', r'^logout')
+    def logout(self, request, response):
+        if not request.account:
+            return (response.json() if request.is_ajax() else response.redirect())
+        
+        request.account.logout(request)
+        if request.is_ajax():
+            return response.json(url='/')
+        else:
+            return response.redirect()

@@ -11,5 +11,5 @@ class CreateAccountForm(Form):
 class LoginForm(Form):
     email = forms.EmailField(label='E-mail address', max_length=180)
     password = forms.CharField(label='Password', widget=forms.PasswordInput(render_value=False))
-    persistent = forms.BooleanField(label='Remember me', required=False)
-    redirect = forms.CharField(required=False, widget=forms.HiddenInput)
+    #persistent = forms.BooleanField(label='Remember me', required=False)
+    #redirect = forms.CharField(required=False, widget=forms.HiddenInput)

@@ -28,9 +28,9 @@
     <div id="interaction-bar" class="top-bar">
       <ul id="account-actions" class="inline-list">
         {% if request.account %}
-        
+        <li><a id="logout-action" href="{{ url('account-logout') }}">Logout</a></li>
         {% else %}
-        <li><a id="login-link">Login</a></li>
+        <li><a id="login-action">Login</a></li>
         <li><a id="create-account-action">Create account</a></li>
         {% endif %}
       </ul>

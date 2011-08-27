@@ -1,0 +1,19 @@
+{% import 'support/layout.html' as layout %}
+{% call layout.modal('modal-login', 'Login') %}
+<div class="modal-content">
+  <form id="modal-login-form" action="{{ url('account-login') }}" method="post">
+    {{ layout.formfields(form) }}
+    <button type="submit">login</button>
+  </form>
+</div>
+{% endcall %}
+<script type="text/javascript">
+$(function() {
+    modal_login_form = new hitch.form({
+        form: '#modal-login-form',
+        onsuccess: function(form, response) {
+            window.location = response.url;
+        }
+    });
+});
+</script>
