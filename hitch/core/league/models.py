@@ -1,11 +1,16 @@
 import logging
+import random
 from datetime import datetime
 
 from django.conf import settings
 from django.db import models
+from django.db.transaction import commit_on_success
 
 from hitch.support.models import CharField, Manager, Model, SlugField, UniqueIdentifierField
 from hitch.support.util import choices
+
+def pluck(sequence):
+    return (sequence.pop(random.randint(0, len(sequence) - 1)) if sequence else False)
 
 class ScoringPolicy(Model):
     class Meta:
@@ -38,6 +43,63 @@ class Season(Model):
     def __unicode__(self):
         return self.name
     
+    @commit_on_success
+    def create_team(self, name, title, accounts):
+        team = Team.objects.create(season=self, name=name, title=title)
+        for account in accounts:
+            Member.objects.create(season=season, team=team, account=account)
+        return team
+    
+    def schedule(self):
+        teams = list(self.teams.all())
+        matches_per_week = len(teams) / 2
+        
+        byes = []
+        matches = {}
+        for team in teams:
+            matches[team] = []
+            
+        def _schedule_week():
+            week = []
+            pool = list(teams)
+            random.shuffle(pool)
+            while len(pool) >= 2:
+                rejects = []
+                home = pluck(pool)
+                if not home:
+                    return False
+                away = pluck(pool)
+                if not away:
+                    return False
+                while away in matches[home]:
+                    rejects.append(away)
+                    away = pluck(pool)
+                    if not away:
+                        return False
+                pool += rejects
+                week.append((home, away))
+            if len(week) != matches_per_week:
+                return False
+            if len(pool) == 1:
+                if pool[0] in byes:
+                    return False
+                else:
+                    week.append((pool[0],))
+                    byes.append(pool[0])
+            for match in week:
+                if len(match) == 2:
+                    matches[match[0]].append(match[1])
+                    matches[match[1]].append(match[0])
+            return week
+        
+        schedule = []
+        for i in range(1, self.match_count + 1):
+            week = _schedule_week()
+            while not week:
+                week = _schedule_week()
+            schedule.append(week)
+        return schedule
+
 class Team(Model):
     class Meta:
         app_label = 'core'
@@ -66,7 +128,6 @@ class Member(Model):
     
     def __unicode__(self):
         return '%s - %s' % (self.team.name, self.account.fullname)
-
 
 class Week(Model):
     class Meta:

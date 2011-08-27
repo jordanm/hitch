@@ -36,6 +36,12 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
 
 
 define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
+    var field = function(form, element, params) {
+        var self = this;
+        
+    };
+
+
     var form = function(params) {
         var self = this;
         $.extend(self, {
