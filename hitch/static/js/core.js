@@ -53,7 +53,7 @@ define(['jquery', 'jquery.tools'], function($) {
                 cache: false,
                 data: source.data,
                 dataType: 'html',
-                type: (source.data || source.post) ? 'POST' : 'GET',
+                type: source.method || 'GET',
                 url: source.url,
                 success: function(response) {
                     self.modal = $(response);

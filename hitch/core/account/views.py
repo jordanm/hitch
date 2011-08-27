@@ -45,17 +45,19 @@ class AccountViews(Views):
 
     @viewable('account-login', r'^login', secured=True)
     def login(self, request, response):
-        target = request.GET.get('next')
+        target = request.REQUEST.get('next')
         if not target or '//' in target or ' ' in target:
             target = '/'
+
         if request.account:
             if request.is_ajax():
                 return response.json()
             else:
                 return response.redirect(target)
         
+        initial = {'next': target}
         if request.posting:
-            form = forms.LoginForm(data=request.POST)
+            form = forms.LoginForm(data=request.POST, initial=initial)
             if form.is_valid():
                 account = Account.objects.authenticate(email=form.cleaned_data['email'],
                     password=form.cleaned_data['password'])
@@ -79,7 +81,7 @@ class AccountViews(Views):
             elif request.is_ajax():
                 return response.error('invalid-credentials').json()
         else:
-            form = forms.LoginForm()
+            form = forms.LoginForm(initial=initial)
             
         if request.is_ajax():
             return response.render('account/modal-login.html', form=form)
