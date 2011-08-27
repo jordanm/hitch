@@ -1,6 +1,6 @@
 import logging
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.db import models
@@ -8,6 +8,8 @@ from django.db.transaction import commit_on_success
 
 from hitch.support.models import CharField, Manager, Model, SlugField, UniqueIdentifierField
 from hitch.support.util import choices
+
+log = logging.getLogger(__name__)
 
 def pluck(sequence):
     return (sequence.pop(random.randint(0, len(sequence) - 1)) if sequence else False)
@@ -47,10 +49,28 @@ class Season(Model):
     def create_team(self, name, title, accounts):
         team = Team.objects.create(season=self, name=name, title=title)
         for account in accounts:
-            Member.objects.create(season=season, team=team, account=account)
+            Member.objects.create(season=self, team=team, account=account)
         return team
     
     def schedule(self):
+        matches = self._generate_schedule()
+        while not matches:
+            matches = self._generate_schedule()
+            
+        self._create_schedule(matches)
+        
+    def _create_schedule(self, schedule):
+        weeks = []
+        date = self.start_date
+        for i in range(1, self.match_count + 1):
+            weeks.append(Week.objects.create(season=self, week=i, date=date))
+            date += timedelta(days=7)
+            
+        for week, matches in zip(weeks, schedule):
+            for home, away in matches:
+                Match.objects.create(season=self, week=week, home_team=home, away_team=away) 
+    
+    def _generate_schedule(self, attempts_per_week=10):
         teams = list(self.teams.all())
         matches_per_week = len(teams) / 2
         
@@ -84,19 +104,24 @@ class Season(Model):
                 if pool[0] in byes:
                     return False
                 else:
-                    week.append((pool[0],))
+                    week.append((pool[0], None))
                     byes.append(pool[0])
             for match in week:
-                if len(match) == 2:
+                if match[1] is not None:
                     matches[match[0]].append(match[1])
                     matches[match[1]].append(match[0])
             return week
         
         schedule = []
         for i in range(1, self.match_count + 1):
+            log.info('attempting to schedule week %d' % i)
             week = _schedule_week()
+            attempts = 1
             while not week:
                 week = _schedule_week()
+                attempts += 1
+                if attempts == attempts_per_week:
+                    return False
             schedule.append(week)
         return schedule
 
@@ -150,8 +175,12 @@ class Match(Model):
     season = models.ForeignKey(Season, related_name='matches')
     week = models.ForeignKey(Week, related_name='matches')
     home_team = models.ForeignKey(Team, related_name='home_matches')
-    away_team = models.ForeignKey(Team, related_name='away_matches')
+    away_team = models.ForeignKey(Team, related_name='away_matches', null=True, blank=True)
     occurrence = models.DateField('Occurrence', null=True, blank=True)
+    
+    @property
+    def is_bye(self):
+        return (self.away_team is None)
     
     def __unicode__(self):
         return '%s v %s' % (self.home_team.name, self.away_team.name)
@@ -170,3 +199,31 @@ class Round(Model):
     def __unicode__(self):
         return '%s (round %d)' % (self.match, self.round)
 
+@commit_on_success
+def generate_fake_data(with_byes=False, wipe=False):
+    from hitch.core.account.models import Account
+    if wipe:
+        Match.objects.all().delete()
+        Week.objects.all().delete()
+        Member.objects.all().delete()
+        Team.objects.all().delete()
+        Season.objects.all().delete()
+        Account.objects.filter(email__endswith='@test.com').delete()
+    
+    chars = 'abcdefghijklmnopqrst'
+    if with_byes:
+        chars += 'uv'
+    
+    season = Season.objects.create(name='test_season', title='Test Season', match_count=8,
+        start_date=datetime.now(), end_date=datetime.now()) 
+    
+    accounts = {}
+    for char in chars:
+        accounts[char] = Account.objects.create(fullname=char, email='%s@test.com' % char, password=char*8)
+    
+    teams = []
+    for alpha, beta in [(chars[i], chars[i+1]) for i in range(0, len(chars), 2)]:
+        name = alpha + beta
+        teams.append(season.create_team(name, name, [accounts[alpha], accounts[beta]]))
+        
+    return season
