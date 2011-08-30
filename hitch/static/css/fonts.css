@@ -1,6 +1,10 @@
 @font-face {
   font-family: 'FFFTusj';
-  src: url('/static/fonts/fff-tusj-webfont.ttf') format('truetype');
+  src: url('/static/fonts/fff-tusj-webfont.eot');
+  src: url('/static/fonts/fff-tusj-webfont.eot?#iefix') format('embedded-opentype'),
+    url('/static/fonts/fff-tusj-webfont.woff') format('woff'),
+    url('/static/fonts/fff-tusj-webfont.ttf') format('truetype'),
+    url('/static/fonts/fff-tusj-webfont.svg#FFFTusjBold') format('svg');
   font-weight: normal;
   font-style: normal;
 }
