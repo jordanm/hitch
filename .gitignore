@@ -4,3 +4,4 @@
 settings_local.py
 .project
 .pydevproject
+hitch/static/css/main.css

@@ -125,7 +125,7 @@ def stylesheets(target):
             css.append('  <link rel="stylesheet" type="text/css" href="%s%s"/>' % (CSS_URL, filename))
         return '\n'.join(css)
     else:
-        return ''
+        return '  <link rel="stylesheet" type="text/css" href="%s%s.css"/>' % (CSS_URL, target)
 
 @environment.function
 @contextfunction

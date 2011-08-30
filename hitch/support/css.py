@@ -1,37 +1,36 @@
 import logging
-from collections import defaultdict
+import re
+from collections import defaultdict, OrderedDict
 from os.path import exists, join
 from re import compile
 
+from django.conf import settings
+
 from hitch.support.util import uniqid
 
+CSS_URL = settings.CSS_URL
+CSS_TARGETS = settings.CSS_TARGETS
+FILESYSTEM_ROOT = settings.FILESYSTEM_ROOT
+
 log = logging.getLogger(__name__)
+
+def _uniquify_key(key):
+    return '%s|%s|' % (key, uniqid())
 
 class StylesheetBuilder(object):
     Filters = {'post': [], 'property': []}
     
-    def __init__(self, preprocessor, searchpath, minified=True):
-        self.minified = minified
-        self.preprocessor = preprocessor
-        self.searchpath = searchpath
+    def build(self, files, minified=False):
+        rules = defaultdict(OrderedDict)
+        for filepath in files:
+            with open(filepath) as openfile:
+                self._merge_css(rules, openfile.read())
         
-    def build(self, sources, context, files=None, preprocess_only=False):
-        files = files or {}
-        rules = defaultdict(dict)
-        for basepath in reversed(self.searchpath):
-            for source in sources:
-                path = join(basepath, source)
-                if path in files:
-                    template = self.preprocessor.create_template(files[path])
-                else:
-                    template = self.preprocessor.get_template(path)
-                if template:
-                    template = self.preprocessor.preprocess_template(template, context)
-                    self._merge_css(rules, template)
-        if self.minified:
+        if minified:
             css = self._minify_css(rules)
         else:
             css = self._format_css(rules)
+            
         for filter in self.Filters['post']:
             css = filter(css)
         return css
@@ -40,7 +39,7 @@ class StylesheetBuilder(object):
         css = []
         for selector, properties in rules.iteritems():
             definition = []
-            for key, value in sorted(properties.iteritems()):
+            for key, value in properties.iteritems():
                 definition.append('  %s: %s;' % (key, value))
             else:
                 css.append('%s {\n%s\n}' % (selector, '\n'.join(definition)))
@@ -62,7 +61,8 @@ class StylesheetBuilder(object):
                 break
             definition = css[opening + 1:closing].strip(' ;')
             if definition:
-                properties = {}
+                selectors = css[offset:opening].strip()
+                properties = OrderedDict()
                 for pair in definition.split(';'):
                     try:
                         key, value = pair.split(':')
@@ -71,9 +71,9 @@ class StylesheetBuilder(object):
                     else:
                         key, value = key.strip(), value.strip()
                         for filter in self.Filters['property']:
-                            key, value = filter(key, value)
+                            key, value = filter(selectors, key, value)
                         properties[key] = value
-                for selector in css[offset:opening].strip().split(','):
+                for selector in selectors.split(','):
                     rules[selector.strip()].update(properties)
             offset = closing + 1
             
@@ -81,7 +81,7 @@ class StylesheetBuilder(object):
         combined = defaultdict(list)
         for selector, properties in rules.iteritems():
             definition = []
-            for key, value in sorted(properties.iteritems()):
+            for key, value in properties.iteritems():
                 definition.append('%s:%s' % (key, value))
             else:
                 combined[';'.join(definition)].append(selector)
@@ -91,7 +91,7 @@ class StylesheetBuilder(object):
             css.append('%s{%s}' % (','.join(selectors), definition))
         else:
             return ''.join(css)
-    
+            
     def filter(stage, filters=Filters):
         def decorator(method):
             filters[stage].append(method)
@@ -99,12 +99,30 @@ class StylesheetBuilder(object):
         return decorator
     
     @filter('property')
-    def _filter_background_gradients(key, value):
+    def _filter_background_gradients(selectors, key, value):
         if key == 'background-image' and 'gradient' in value:
-            return '%s|%s|' % (key, uniqid()), value
+            return _uniquify_key(key), value
+        else:
+            return key, value
+        
+    @filter('property')
+    def _filter_font_face_src(selectors, key, value):
+        if selectors == '@font-face' and key == 'src':
+            return _uniquify_key(key), value
         else:
             return key, value
         
     @filter('post')
-    def _filter_background_gradients_post(css):
+    def _filter_uniquified_keys(css):
         return re.sub(r'[|][0-9a-f]{32}[|]', '', css)
+    
+def build_css_targets(targets=None, minified=False, stdout=False):
+    builder = StylesheetBuilder() 
+    for target in targets or CSS_TARGETS.keys():
+        files = [join(FILESYSTEM_ROOT, CSS_URL[1:], filename) for filename in CSS_TARGETS[target]]
+        css = builder.build(files, minified)
+        if stdout:
+            print css
+        else:
+            with open(join(FILESYSTEM_ROOT, CSS_URL[1:], '%s.css' % target), 'w+') as openfile:
+                openfile.write(css)
