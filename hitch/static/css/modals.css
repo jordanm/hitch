@@ -1,0 +1,31 @@
+.modal {
+  display: none;
+  width: 400px;
+}
+.modal-container {
+  background: #f5f3f0;
+  border: 1px solid #888;
+  border-radius: 4px;
+  box-shadow: 0 0 6px 1px #d9d9d9;
+  position: relative;
+}
+.modal-header {
+  background: #efedea;
+  border-bottom: 1px solid #aaa;
+  border-radius: 4px 4px 0 0;
+  padding: 8px 16px;
+}
+.modal-header h1 {
+  font: 22px Palatino, serif;
+  letter-spacing: -1px;
+  text-shadow: 1px 1px 1px #ddd;
+}
+.modal-content {
+  padding: 8px 16px;
+}
+
+.modal .field-label-container {
+  float: left;
+  padding-top: 6px;
+  width: 80px;
+}

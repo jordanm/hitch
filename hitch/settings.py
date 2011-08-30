@@ -72,6 +72,11 @@ MODELS_IGNORED_WHEN_DELETED = (
     'hitch.core.account.models.PersistentLogin',
 )
 
+CSS_URL = '/static/css/'
+CSS_TARGETS = {
+    'main': ['reset.css', 'fonts.css', 'base.css', 'forms.css', 'dateinput.css', 'modals.css', 'core.css'],
+}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

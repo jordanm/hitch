@@ -11,10 +11,7 @@
   <script type="text/javascript">var require = {baseUrl: "/static/js"};</script>
   <script data-main="{{ js_module }}" src="/static/js/require-jquery.js"></script>
   
-  <link rel="stylesheet" type="text/css" href="/static/css/reset.css"/>
-  <link rel="stylesheet" type="text/css" href="/static/css/fonts.css"/>
-  <link rel="stylesheet" type="text/css" href="/static/css/base.css"/>
-  <link rel="stylesheet" type="text/css" href="/static/css/dateinput.css"/>
+  {{ stylesheets('main') }}
   
   <link rel="shortcut icon" type="image/x-icon" href="/static/img/favicon.ico"/>
   
@@ -22,8 +19,27 @@
 </head>
 <body>
 
+  <div id="side-container">
+    <h1 id="watermark">42</h1>
+    <div id="site-title">
+      <h1>The Austin 42 Club</h1>
+      <h2>~ Established 2005 ~</h2>
+    </div>
+  </div>
+  <div id="page-container">
+    <div id="interaction-bar">
+      <a id="create-account-action">Create account</a>
+    </div>
+  
+    {% block content %}{% endblock %}
+  </div>
+
+
+  {#
   <div id="fixed-montage">
-    <h1>42</h1>
+    <h1 id="logo-austin">AUSTIN</h1>
+    <h1 id="logo-42">42</h1>
+    <h1 id="logo-club">CLUB</h1>
   </div>
   <div id="page-container">
     <div id="interaction-bar" class="top-bar">
@@ -39,6 +55,7 @@
     </div>
     {% block content %}{% endblock %}
   </div>
+  #}
   
 
 </body>

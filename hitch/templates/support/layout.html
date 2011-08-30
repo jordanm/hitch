@@ -1,10 +1,10 @@
 {% macro modal(id, title, classes='') %}
 <div id="{{ id }}" class="modal {{ classes }} flash-message-container">
-  <div class="modal-header">
-    <h1>{{ title }}</h1>
-    <div class="modal-close-button"></div>
-  </div>
   <div class="modal-container">
+    <div class="modal-header">
+      <h1>{{ title }}</h1>
+      <div class="modal-close-button"></div>
+    </div>
     {{ caller() }}
   </div>
 </div>

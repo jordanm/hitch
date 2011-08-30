@@ -1,0 +1,46 @@
+button {
+  background: #efedea;
+  border: 1px solid #888;
+  box-shadow: 1px 1px 1px 1px #efedea;
+  border-radius: 3px;
+  color: #575757;
+  font-size: 93%;
+  padding: 3px 9px;
+  text-align: center;
+  text-shadow: 1px 1px 1px #ddd;
+}
+button::-moz-focus-inner {
+  border: 0;
+}
+button:enabled:hover {
+  border: 1px solid #666;
+  box-shadow: 1px 1px 1px 1px #ece9e6;
+  color: #373737;
+  text-shadow: 1px 1px 1px #ccc;
+}
+
+input[type=text], input[type=password] {
+  background: #f2f0ed;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  box-shadow: 1px 1px 1px 1px #efedea;
+  color: #373737;
+  font-size: 138.5%;
+  padding: 3px 6px;
+}
+input[type=text]:enabled:hover, input[type=text]:enabled:focus,
+input[type=password]:enabled:hover, input[type=password]:enabled:focus {
+  border: 1px solid #666;
+}
+
+
+/*
+input {
+  -moz-transition: opacity 1s ease 0s;
+  opacity: 0.7;
+}
+input:focus {
+  opacity: 1.0;
+}
+*/
+

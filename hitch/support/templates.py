@@ -16,6 +16,9 @@ from hitch.support.util import pluralize as _pluralize
 
 log = logging.getLogger(__name__)
 
+CSS_TARGETS = settings.CSS_TARGETS
+CSS_URL = settings.CSS_URL
+DEVELOPING = settings.DEVELOPING
 TEMPLATE_SEARCHPATH = settings.TEMPLATE_SEARCHPATH
 
 STANDARD_FILTERS = [escapejs, repr]
@@ -113,6 +116,16 @@ def pluralize(value, number=2, alternative=None):
 @environment.filter
 def typename(value):
     return type(value).__name__
+
+@environment.function
+def stylesheets(target):
+    if DEVELOPING:
+        css = []
+        for filename in CSS_TARGETS[target]:
+            css.append('  <link rel="stylesheet" type="text/css" href="%s%s"/>' % (CSS_URL, filename))
+        return '\n'.join(css)
+    else:
+        return ''
 
 @environment.function
 @contextfunction
