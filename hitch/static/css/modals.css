@@ -24,8 +24,27 @@
   padding: 8px 16px;
 }
 
+.modal label {
+  display: block;
+  font-size: 87%;
+}
+
+.modal .field {
+  border-bottom: 1px dotted #aaa;
+  padding: 8px 16px;
+}
+
 .modal .field-label-container {
   float: left;
   padding-top: 6px;
   width: 80px;
+}
+.modal .field-widget-container {
+  float: left;
+}
+.modal .form-buttons {
+  padding: 8px 16px;
+}
+.modal .form-buttons button {
+  float: right;
 }

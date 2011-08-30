@@ -53,7 +53,7 @@ $(function() {
 {% macro formfield(form, field, classes='') %}
 <div id="{{ field.auto_id }}-container" class="field {{ classes }} {{ 'required' if field.field.required }}">
   <div class="field-label-container">
-    <label for="{{ field.auto_id }}">{{ field.metadata.label|d(field.label) }}</label>
+    <label for="{{ field.auto_id }}">{{ field.metadata.label|d(field.label) }}:</label>
   </div>
   <div class="field-widget-container">
     {{ caller() }}
@@ -90,4 +90,28 @@ $(function() {
       {{ _caller() }}
     {% endif %}
   {% endif %}
+{% endmacro %}
+
+{% macro form_buttons(primary_label='Save') %}
+<div class="form-buttons">
+  <button data-save-action="save" type="submit"><span>{{ primary_label }}</span></button>
+  <div class="clear"></div>
+</div>
+{% endmacro %}
+
+{% macro form(id, forms, action, classes='', buttons=True, primary_label='Save') %}
+<form id="{{ id }}" action="{{ action }}" method="post" {% if classes %}class="{{ classes }}"{% endif %}>
+  <div class="form-errors"></div>
+  {% if forms %}
+    {% for form in forms %}
+      {{ formfields(form) }}
+    {% endfor %}
+  {% endif %}
+  {% if caller %}
+    {{ caller() }}
+  {% endif %}
+  {% if buttons %}
+    {{ form_buttons(primary_label) }}
+  {% endif %}
+</form>
 {% endmacro %}

@@ -6,6 +6,7 @@ define(['jquery', 'jquery.tools'], function($) {
             expose: {color: '#444', loadSpeed: 200, opacity: 0.8, zIndex: 500},
             exposed: true,
             modal: null,
+            onhide: null,
             onload: null,
             onshow: null,
             remove_on_close: false,
@@ -51,6 +52,8 @@ define(['jquery', 'jquery.tools'], function($) {
             this.modal.overlay().close();
             if(remove) {
                 this.modal.remove();
+            } else if(this.onhide) {
+                this.onhide(self.modal);
             }
         },
         load: function() {

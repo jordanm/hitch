@@ -1,19 +1,4 @@
 {% import 'support/layout.html' as layout %}
 {% call layout.modal('modal-create-account', 'Create an account') %}
-<div class="modal-content">
-  <form id="modal-create-account-form" action="{{ url('account-create') }}" method="post">
-    {{ layout.formfields(form) }}
-    <button type="submit">create</button>
-  </form>
-</div>
-{% endcall %} 
-<script type="text/javascript">
-$(function() {
-    modal_create_account_form = new hitch.form({
-        form: '#modal-create-account-form',
-        onsuccess: function(form, response) {
-            window.location = response.url;
-        }
-    });
-});
-</script>
+  {{ layout.form('modal-create-account-form', [form], url('account-create')) }}
+{% endcall %}
