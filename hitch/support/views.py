@@ -69,7 +69,7 @@ class Response(object):
         if params:
             data.update(params)
             
-        data['messages'] = [{'text': msg[0], 'tags': msg[1]} for msg in self.messages]
+        data['messages'] = [{'text': msg[0], 'tag': msg[1]} for msg in self.messages]
         return self._apply_cookies(HttpResponse(dumps(data), mimetype='application/json'))
 
     def message(self, text, tag='info'):

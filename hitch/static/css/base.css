@@ -25,3 +25,9 @@ ul.inline-list, ul.inline-list li {
 .clear {
   clear: both;
 }
+
+
+
+.flash-message-receiver {
+  display: none;
+}

@@ -24,6 +24,30 @@
   padding: 8px 16px;
 }
 
+
+.modal .flash-message-receiver {
+  border-bottom: 1px dotted #aaa;
+  padding: 10px 16px;
+}
+.modal .flash-message-receiver li {
+  font-size: 77%;
+  margin-bottom: 2px;
+}
+.modal .flash-message-receiver li:last-child {
+  margin-bottom: 0;
+}
+.modal .flash-message-receiver .error {
+  background: url('/static/img/icon-sprite.png') no-repeat left 1px;
+  color: #bf5f65;
+  padding-left: 14px;
+}
+
+
+
+.modal input[type=text], .modal input[type=password] {
+  width: 40px;
+}
+
 .modal label {
   display: block;
   font-size: 87%;
@@ -48,3 +72,4 @@
 .modal .form-buttons button {
   float: right;
 }
+

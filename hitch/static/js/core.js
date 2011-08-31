@@ -104,12 +104,6 @@ define(['jquery', 'jquery.tools'], function($) {
         }
     });
     return {
-        options: {
-            flash_default_tag: 'error',
-            flash_default_text: 'An unknown error has occurred.',
-            flash_message_container: '.flash-message-container',
-            flash_message_receiver: '.flash-message-receiver'
-        },
         cookie: function(name, value, options) {
             if(typeof value != 'undefined') {
                 options = options || {};
@@ -153,27 +147,24 @@ define(['jquery', 'jquery.tools'], function($) {
             }
         },
         declare: declare,
-        flash: function(params) {
-            var options = this.options, container, message, receiver;
+        flash: function(messages, params) {
+            var container, permanent, receiver;
+            if(!$.isArray(messages)) {
+                if($.isPlainObject(messages)) {
+                    messages = [messages];
+                } else {
+                    messages = [{text: 'An unknown error has occurred.', tag: 'error'}];
+                }
+            }
             params = params || {};
-            if(!params.text) {
-                params.text = options.flash_default_text;
-            }
-            if(!params.tag) {
-                params.tag = options.flash_default_tag;
-            }
-            if(params.tag == 'error' || params.tag == 'warning' || params.tag == 'notice') {
-                params.permanent = true;
-            }
-            message = $('<li class="' + params.tag + '">' + params.text + '</li>').hide();
             if(params.source) {
-                container = $(params.source).parents(options.flash_message_container).first();
+                container = $(params.source).parents('.flash-message-container').first();
                 if(container.length) {
-                    receiver = container.find(options.flash_message_receiver);
+                    receiver = container.find('.flash-message-receiver');
                 }
             }
             if(!(receiver && receiver.length)) {
-                receiver = $(options.receiver).first();
+                receiver = $('.flash-message-receiver').first();
                 if(!(receiver && receiver.length)) {
                     return;
                 }
@@ -181,19 +172,24 @@ define(['jquery', 'jquery.tools'], function($) {
             if(params.clear) {
                 receiver.empty();
             }
-            receiver.append(message);
+            permanent = false;
+            $.each(messages, function(i, message) {
+                receiver.append($('<li class="' + message.tag + '">' + message.text + '</li>'));
+                if(message.tag == 'error' || message.tag == 'warning') {
+                    permanent = true;
+                }
+            });
             if(receiver.is('.nofading')) {
-                message.show();
-                if(!params.permanent) {
-                    setTimeout(function() {message.remove()}, options.flash_message_lifetime);
+                receiver.show();
+                if(!permanent) {
+                    setTimeout(function() {receiver.hide().empty()}, 3000);
                 }
             } else {
-                message.fadeIn(500);
-                if(!params.permanent) {
-                    setTimeout(function() {message.fadeOut(500, function() {message.remove()})}, options.flash_message_lifetime);
+                receiver.fadeIn(500);
+                if(!permanent) {
+                    setTimeout(function() {receiver.fadeOut(500, function() {receiver.hide().empty()})}, 3000);
                 }
             }
-            return message;
         },
         install_modal_loader: function(selector, params) {
             var self = this;

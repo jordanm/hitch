@@ -151,7 +151,7 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
                     url: self.url,
                     success: function(response) {
                         if(response.messages) {
-                        
+                            core.flash(response.messages, {source: self.form});
                         }
                         if(response.error) {
                             if(response.form_errors) {
