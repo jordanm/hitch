@@ -21,6 +21,17 @@ ul.inline-list, ul.inline-list li {
   margin: 0;
   padding: 0;
 }
+ul.inline-list li {
+  border-right: 1px dotted #ccc;
+  float: left;
+  margin-right: 6px;
+  padding-right: 6px;
+}
+ul.inline-list li:last-child {
+  border-right: 0;
+  margin-right: 0;
+  padding-right: 0;
+}
 
 .clear {
   clear: both;

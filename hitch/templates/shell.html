@@ -2,8 +2,8 @@
 <html>
 <head>
 
+  <meta charset="utf-8"/>
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-  <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
   <meta name="description" content=""/>
   
   <title>{% block title %}{{ page_title }}{% endblock %}</title>
@@ -15,7 +15,6 @@
   
   <link rel="shortcut icon" type="image/x-icon" href="/static/img/favicon.ico"/>
   
- 
 </head>
 <body>
 
@@ -27,36 +26,24 @@
     </div>
   </div>
   <div id="page-container">
-    <div id="interaction-bar">
-      <a id="login-action">Login</a>
-      <a id="create-account-action">Create account</a>
-    </div>
-  
-    {% block content %}{% endblock %}
-  </div>
-
-
-  {#
-  <div id="fixed-montage">
-    <h1 id="logo-austin">AUSTIN</h1>
-    <h1 id="logo-42">42</h1>
-    <h1 id="logo-club">CLUB</h1>
-  </div>
-  <div id="page-container">
-    <div id="interaction-bar" class="top-bar">
-      <ul id="account-actions" class="inline-list">
+    <div id="account-actions">
+      <ul class="inline-list">
         {% if request.account %}
-        <li><a id="logout-action" href="{{ url('account-logout') }}">Logout</a></li>
+        <li><a id="profile-action">{{ request.account.fullname }}</a></li>
+        <li><a id="logout-action" href="{{ url('account-logout') }}">Sign out</a></li>
         {% else %}
-        <li><a id="login-action">Login</a></li>
-        <li><a id="create-account-action">Create account</a></li>
+        <li><a id="login-action">Sign in</a></li>
+        <li><a id="create-account-action">Sign up</a></li>
         {% endif %}
       </ul>
-      testing
     </div>
-    {% block content %}{% endblock %}
+    <div id="title-bar">
+      <h1>Welcome!</h1>
+    </div>
+    <div id="page-content">
+      {% block content %}{% endblock %}
+    </div>
   </div>
-  #}
   
 
 </body>

@@ -74,6 +74,8 @@ $(function() {
     {% endif %}
     {% if field.metadata.help %}
     <div class="field-help">{{ field.metadata.help }}</div>
+    {% elif field.help_text %}
+    <div class="field-help">{{ field.help_text }}</div>
     {% endif %}
   </div>
   <div class="clear"></div>
