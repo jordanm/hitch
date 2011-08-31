@@ -20,12 +20,13 @@
 }
 #site-title {
   background-color: #f5f5f5;
+  border-right: 1px solid #ccc;
   left: 0;
   padding: 7px 0 6px;
   position: fixed;
   text-align: center;
   top: 40px;
-  width: 354px;
+  width: 353px;
   z-index: 1;
 }
 #site-title h1 {

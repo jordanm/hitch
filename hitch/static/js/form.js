@@ -1,52 +1,105 @@
 define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
-    var _field_implementations = {
-        'input[type=text]': {
-            _resize_on_modals: true
-        },
-        'select': {
-            _validation_event: 'change'
-        },
-        'textarea': {
-        },
-        'input': {
-            _resize_on_modals: true
+    var _validate_text = function() {
+        var self = this, value = this.element.val();
+        if(typeof self.min_length == 'number') {
+            if(value.length < self.min_length) {
+                self.mark_invalid([self.label + ' must be at least ' + self.min_length + ' characters long.']);
+                return false;
+            }
         }
+        if(typeof self.max_length == 'number') {
+            if(value.length > self.max_length) {
+                self.mark_invalid([self.label + ' must be at most ' + self.max_length + ' characters long.']);
+                return false;
+            }
+        }
+        if(typeof self.pattern == 'string') {
+            var re = new RegExp(self.pattern);
+            if(!re.test(value)) {
+                self.mark_invalid([self.label + ' contains invalid characters.']);
+                return false;
+            }
+        }
+        return true;
     };
+    var _field_implementations = [
+        ['input[type=text],input[type=password]', {
+            _resize_on_modals: true,
+            _validator: _validate_text
+        }],
+        ['textarea', {
+            _resize_on_modals: true,
+            _validator: _validate_text
+        }],
+        ['select', {
+            _validation_event: 'change'
+        }],
+        ['input', {
+            _resize_on_modals: true
+        }]
+    ];
     core.field = function(form, element, params) {
         var self = this;
         $.extend(self, {
             element: element,
+            errors: [],
             form: form,
+            label: element.parents('.field').find('label').text().replace(':', ''),
             name: element.attr('name'),
-            required: false,
             selector: null,
+            status: 'empty',
             _resize_on_modals: false,
             _validation_event: 'blur'
         });
+        $.extend(self, element.data('metadata'));
         $.extend(self, params);
-        $.each(_field_implementations, function(selector, implementation) {
-            if(element.is(selector)) {
-                self.selector = selector;
-                $.extend(self, implementation);
+        $.each(_field_implementations, function(i, candidate) {
+            if(element.is(candidate[0])) {
+                self.selector = candidate[0];
+                $.extend(self, candidate[1]);
                 return false;
             }
         });
-        self.element.bind(self._validation_event, function(event) {
+        element.bind(self._validation_event, function(event) {
             self.validate();
         });
+        self._field_container = element.parents('.field');
+        self._errors_container = self._field_container.find('.field-errors'); 
         self.layout();
-        self.element.data('field', self);
+        element.data('field', self);
     };
     $.extend(core.field.prototype, {
         layout: function() {
-            var self = this;
-            if(self._resize_on_modals && self.element.is('.modal ' + self.selector)) {
-                var width = self.element.parents('.field').width() - self.element.position().left + 2;
-                self.element.width(width);
+            if(this._resize_on_modals && this.element.parents('.modal').length > 0) {
+                this.element.width(this._field_container.width() - this.element.position().left + 2);
             }
         },
+        mark_invalid: function(errors) {
+            var self = this;
+            self.status = 'invalid';
+            self._field_container.addClass('invalid');
+            self._errors_container.empty();
+            $.each(errors, function(i, error) {
+                self._errors_container.append($('<div class="field-error">' + error + '</div>'));
+            });
+        },
+        mark_valid: function() {
+            var self = this;
+            self.status = 'valid';
+            self._field_container.removeClass('invalid');
+            self._errors_container.empty();        
+        },
         validate: function() {
-            console.debug('validating ' + this.name);
+            var self = this, value = this.element.val();
+            if(self.required && !value) {
+                self.mark_invalid(['This field is required.']);
+                return false;
+            }
+            if(self._validator && !self._validator()) {
+                return false;
+            }
+            self.mark_valid();
+            return true;
         }
     });
     core.form = function(form, params) {
@@ -97,25 +150,32 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
                     type: self.method,
                     url: self.url,
                     success: function(response) {
-                        if(self.redirect_on_success) {
-                            var url = response.url || self.redirect_on_success;
-                            if(typeof url == 'string') {
-                                window.location = url;
-                            }                        
-                        }
                         if(response.messages) {
                         
                         }
                         if(response.error) {
-                            if(response.field_errors) {
-                            
-                            }
                             if(response.form_errors) {
                             
                             }
-                            self.onerror(self, response.error);
+                            if(response.field_errors) {
+                                $.each(response.field_errors, function(name, errors) {
+                                    console.debug(self.fields[name]);
+                                    self.fields[name].invalidate(errors);
+                                });
+                            }
+                            if(self.onerror) {
+                                self.onerror(self, response.error);
+                            }
                         } else {
-                            self.onsuccess(self, response);
+                            if(self.redirect_on_success) {
+                                var url = response.url || self.redirect_on_success;
+                                if(typeof url == 'string') {
+                                    window.location = url;
+                                }
+                            }
+                            if(self.onsuccess) {
+                                self.onsuccess(self, response);
+                            }
                         }
                     },
                     error: function() {
@@ -128,7 +188,13 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
             return false;        
         },
         validate: function() {
-            return true;
+            var self = this, valid = true;
+            $.each(self.fields, function(name, field) {
+                if(!field.validate()) {
+                    valid = false;
+                }
+            });
+            return valid;
         }
     });
 });

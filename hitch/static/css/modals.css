@@ -31,12 +31,12 @@
 
 .modal .field {
   border-bottom: 1px dotted #aaa;
-  padding: 8px 16px;
+  padding: 10px 16px;
 }
 
 .modal .field-label-container {
   float: left;
-  padding-top: 6px;
+  padding-top: 7px;
   width: 80px;
 }
 .modal .field-widget-container {

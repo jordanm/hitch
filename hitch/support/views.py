@@ -44,7 +44,7 @@ class Response(object):
             raise PermissionDenied()
         
     def collect(self, form):
-        self.data.update(field_errors=[], form_errors=[])
+        self.data.update(field_errors={}, form_errors=[])
         if isinstance(form.errors, list):
             for subform in form.forms:
                 self._collect_errors(subform)
@@ -112,8 +112,9 @@ class Response(object):
         prefix = ('%s-' % form.prefix if form.prefix else '')
         for field in form:
             if field.name in form.errors:
-                message = unicode(form.errors[field.name][0])
-                self.data['field_errors'].append([prefix + field.name, message])
+                errors = self.data['field_errors'][prefix + field.name] = []
+                for error in form.errors[field.name]:
+                    errors.append(unicode(error))
         
         form_errors = form.errors.get('__all__')
         if isinstance(form_errors, (list, tuple)):

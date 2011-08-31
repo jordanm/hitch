@@ -1,4 +1,24 @@
 define(['jquery', 'jquery.tools'], function($) {
+    function declare(implementation) {
+        var declaration = function(args) {
+            console.debug('called');
+            if(this instanceof arguments.callee) {
+                console.debug('callee correct');
+                if(typeof this.initialize == 'function') {
+                    console.debug(args);
+                    
+                    this.initialize.apply(this, args.callee ? args : arguments);
+                }
+            } else {
+                console.debug('called not correct; recalling with new');
+                return new arguments.callee(arguments);
+            }
+        };
+        if(typeof implementation != 'undefined') {
+            $.extend(declaration.prototype, implementation);
+        }
+        return declaration;
+    };
     var modal = function(params) {
         $.extend(this, {
             closeable: true,
@@ -132,6 +152,7 @@ define(['jquery', 'jquery.tools'], function($) {
                 });
             }
         },
+        declare: declare,
         flash: function(params) {
             var options = this.options, container, message, receiver;
             params = params || {};

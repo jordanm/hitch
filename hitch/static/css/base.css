@@ -13,6 +13,9 @@ a:hover {
   color: #222;
   text-decoration: underline;
 }
+a:focus {
+  outline: none;
+}
 
 ul.inline-list, ul.inline-list li {
   margin: 0;

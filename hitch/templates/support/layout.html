@@ -10,9 +10,11 @@
 </div>
 {% endmacro %}
 
-{% macro _script_block() %}
-<script type="text/javascript">$(function(){ {{ caller() }} });</script>
-{% endmacro %}
+{%- macro _field_attrs(field, metadata, include_value=True) -%}
+id="{{ field.auto_id }}" name="{{ field.html_name }}" 
+{% if include_value and field.initial_value and field.initial_value.value %}value="{{ field.initial_value.value }}"{% endif %}
+data-metadata='{{ field.metadata|json }}'
+{%- endmacro -%}
 
 {% macro dateinput(field, metadata) %}
 <input id="{{ field.auto_id }}" type="date" name="{{ field.html_name }}"
@@ -24,9 +26,8 @@ $(function() {
 </script>
 {% endmacro %}
 
-{% macro textbox(field, metadata, regexp=None, type='text') %}
-<input id="{{ field.auto_id }}" type="{{ type }}" name="{{ field.html_name }}"
-  {% if field.initial_value and field.initial_value.value %}value="{{ field.initial_value.value }}"{% endif %}/>
+{% macro textbox(field, metadata, type='text') %}
+<input type="{{ type }}" {{ _field_attrs(field, metadata) }}/>
 {% endmacro %}
 
 {% macro _construct_field_widget(field) %}
@@ -57,7 +58,10 @@ $(function() {
   </div>
   <div class="field-widget-container">
     {{ caller() }}
-    <div class="field-error"></div>
+    <div class="field-errors"></div>
+    {% if field.metadata.help %}
+    <div class="field-help">{{ field.metadata.help }}</div>
+    {% endif %}
   </div>
   <div class="clear"></div>
 </div>

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from json import dumps, loads
 
 from django import forms
@@ -12,6 +13,8 @@ from django.forms.widgets import HiddenInput
 
 class FormMixin(object):
     metadata = {}
+    metadata_attr_targets = ['max_length', 'min_length', 'required']
+    metadata_processors = defaultdict(list)
     
     def __getitem__(self, name):
         return self._bind_field(name, self.fields[name])
@@ -51,7 +54,7 @@ class FormMixin(object):
     
     def _bind_field(self, name, field):
         bound = BoundField(self, field, name)
-        bound.metadata = self._field_metadata.get(name) or {}
+        bound.metadata = self._prepare_field_metadata(name, field)
         
         value = self._get_field_value(bound)
         if isinstance(field, forms.ModelMultipleChoiceField):
@@ -81,6 +84,36 @@ class FormMixin(object):
     
     def _initialize_metadata(self):
         self._field_metadata = self.metadata.get('fields') or {}
+        for field, metadata in self._field_metadata.iteritems():
+            if field in self.fields:
+                required = metadata.get('required', None)
+                if required is not None:
+                    self.fields[field].required = required
+                if metadata.get('hidden', False):
+                    self.fields[field].widget = HiddenInput()
+    
+    def _prepare_field_metadata(self, name, field):
+        metadata = self._field_metadata.get(name) or {}
+        for target in self.metadata_attr_targets:
+            value = getattr(field, target, None)
+            if value is not None:
+                metadata[target] = value
+                
+        field_type = type(field).__name__
+        for processor in self.metadata_processors.get(field_type, ()):
+            processor(metadata, field)
+        return metadata
+    
+    def metadata_processor(classnames, processors=metadata_processors):
+        def decorator(method):
+            for classname in classnames:
+                processors[classname].append(method)
+            return method
+        return decorator
+    
+    @metadata_processor(['SlugField'])
+    def _process_slugfield(metadata, field):
+        metadata['pattern'] = '^[-A-Za-z0-9_]*$'
     
 class Form(FormMixin, forms.Form):
     def __init__(self, *args, **params):
