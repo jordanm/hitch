@@ -1,4 +1,9 @@
 {% import 'support/layout.html' as layout %}
 {% call layout.modal('modal-login', 'Login') %}
-  {{ layout.form('modal-login-form', [form], url('account-login'), primary_label='Login') }}
+<form id="modal-login-form" action="{{ url('account-login') }}" method="post">
+  {{ layout.formfields(form, exclude=['persistent']) }}
+  {% call layout.form_buttons('Login') %}
+    {{ layout.detached_checkbox(form.persistent) }}
+  {% endcall %}
+</form>
 {% endcall %}

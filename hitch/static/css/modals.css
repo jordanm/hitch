@@ -20,10 +20,21 @@
   letter-spacing: -1px;
   text-shadow: 1px 1px 1px #ddd;
 }
+.modal-close-button {
+  background: url('/static/img/icon-sprite.png') no-repeat right -80px;
+  cursor: pointer;
+  height: 10px;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 10px;
+}
+.modal-close-button:hover {
+  background: url('/static/img/icon-sprite.png') no-repeat right -100px;
+}
 .modal-content {
   padding: 8px 16px;
 }
-
 
 .modal .flash-message-receiver {
   border-bottom: 1px dotted #aaa;
@@ -42,22 +53,16 @@
   padding-left: 14px;
 }
 
-
-
 .modal input[type=text], .modal input[type=password] {
   width: 40px;
 }
-
 .modal label {
-  display: block;
   font-size: 87%;
 }
-
 .modal .field {
   border-bottom: 1px dotted #aaa;
   padding: 10px 16px;
 }
-
 .modal .field-label-container {
   float: left;
   padding-top: 7px;
@@ -72,4 +77,7 @@
 .modal .form-buttons button {
   float: right;
 }
-
+.modal .form-buttons .detached_checkbox_field {
+  position: relative;
+  top: 5px;
+}

@@ -102,6 +102,52 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
             return true;
         }
     });
+    core.button = function(form, element, params) {
+        var self = this;
+        $.extend(self, {
+            action: element.data('action') || 'submit',
+            element: element,
+            form: form,
+            span: element.find('span')
+        });
+        $.extend(self, params);
+        element.bind('click', function(event) {
+            form.submittal_button = self;
+        });
+        element.data('button', self);
+    };
+    $.extend(core.button.prototype, {
+        disable: function() {
+            var self = this;
+            self.element.attr('disabled', true);
+            return self;
+        },
+        enable: function() {
+            var self = this;
+            self.element.attr('disabled', false);
+            return self;
+        },
+        spin: function() {
+            var self = this, span = this.span;
+            if(span.length) {
+                self.element.queue(function(next) {
+                    span.prepend($('<img src="/static/img/loading.gif">'));
+                    next();
+                }).delay(300);
+            }
+            return self;
+        },
+        unspin: function() {
+            var self = this;
+            if(self.element.find('img').length) {
+                self.element.queue(function(next) {
+                    self.element.find('img').remove();
+                    next();
+                });
+            }
+            return self;
+        }
+    });
     core.form = function(form, params) {
         var self = this;
         if(typeof form == 'string') {
@@ -111,13 +157,16 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
             return form.data('form');
         }
         $.extend(self, {
-            errors: [],
+            buttons: [],
+            default_button: null,
             fields: {},
             form: form,
-            messages: [],
             onerror: null,
+            onpostsubmit: null,
+            onpresubmit: null,
             onsuccess: null,
-            redirect_on_success: null
+            redirect_on_success: null,
+            submittal_button: null
         });
         $.extend(self, params);
         self.method = self.method || form.attr('method') || 'POST';
@@ -126,20 +175,51 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
             var field = new core.field(self, $(this));
             self.fields[field.name] = field;
         });
+        form.find('button[type=submit]').each(function(index) {
+            var button = new core.button(self, $(this));
+            self.buttons.push(button);
+            if(button.action == 'submit') {
+                self.default_button = button;
+            }
+        });
         form.bind('submit', function(event) {
             return self.submit();
         });
         form.data('form', self);
     };
     $.extend(core.form.prototype, {
+        postsubmit: function() {
+            var self = this;
+            $.each(self.buttons, function(i, button) {
+                button.unspin().enable();
+            });
+            self.submittal_button = null;
+            if(self.onpostsubmit) {
+                self.onpostsubmit();
+            }
+        },
+        presubmit: function() {
+            var self = this;
+            if(!self.submittal_button) {
+                self.submittal_button = self.default_button;
+            }
+            $.each(self.buttons, function(i, button) {
+                button.disable();
+            });
+            self.submittal_button.spin();
+            if(self.onpresubmit) {
+                self.onpresubmit();
+            }            
+        },
         serialize: function() {
             var data = this.form.serializeArray();
             return data;
         },
         submit: function(event) {
-            var self = this;
+            var self = this, data;
             if(self.validate()) {
-                var data = self.serialize();
+                self.presubmit();
+                data = self.serialize();
                 if(self.data) {
                     $.extend(data, self.data);
                 }
@@ -150,7 +230,7 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
                     type: self.method,
                     url: self.url,
                     success: function(response) {
-                        if(response.messages) {
+                        if(response.messages && response.messages.length) {
                             core.flash(response.messages, {source: self.form});
                         }
                         if(response.error) {
@@ -159,8 +239,7 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
                             }
                             if(response.field_errors) {
                                 $.each(response.field_errors, function(name, errors) {
-                                    console.debug(self.fields[name]);
-                                    self.fields[name].invalidate(errors);
+                                    self.fields[name].mark_invalid(errors);
                                 });
                             }
                             if(self.onerror) {
@@ -177,8 +256,10 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
                                 self.onsuccess(self, response);
                             }
                         }
+                        self.postsubmit();
                     },
                     error: function() {
+                        self.postsubmit();
                     }
                 });
             }

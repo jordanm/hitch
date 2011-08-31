@@ -1,22 +1,27 @@
 button {
-  background: #efedea;
+  background: #eaeaea -moz-linear-gradient(top, #eaeaea 0%, #e3e3e3 50%, #eaeaea 100%);
   border: 1px solid #888;
-  box-shadow: 1px 1px 1px 1px #efedea;
+  box-shadow: 1px 1px 1px 0 #dadada;
   border-radius: 3px;
   color: #575757;
   font-size: 93%;
-  padding: 3px 9px;
+  padding: 4px 10px;
   text-align: center;
-  text-shadow: 1px 1px 1px #ddd;
+  text-shadow: 1px 1px 1px #ccc;
 }
 button::-moz-focus-inner {
   border: 0;
 }
 button:enabled:hover {
-  border: 1px solid #666;
-  box-shadow: 1px 1px 1px 1px #ece9e6;
+  background: #c3cdd7 -moz-linear-gradient(top, #cfd9e4 0%, #c3cdd7 50%, #cfd9e4 100%);
+  border: 1px solid #444;
   color: #373737;
-  text-shadow: 1px 1px 1px #ccc;
+  text-shadow: 1px 1px 1px #aaa;
+}
+button img {
+  margin-right: 10px;
+  position: relative;
+  top: 2px;
 }
 
 input[type=text], input[type=password] {
@@ -33,6 +38,11 @@ input[type=password]:enabled:hover, input[type=password]:enabled:focus {
   border: 1px solid #666;
 }
 
+label.detached_checkbox {
+  padding-left: 1px;
+  vertical-align: top;
+}
+
 .field.invalid input[type=text], .field.invalid input[type=password] {
   border: 1px solid #bf5f65;
 }
@@ -47,6 +57,12 @@ input[type=password]:enabled:hover, input[type=password]:enabled:focus {
 .field-error {
   background: url('/static/img/icon-sprite.png') no-repeat left 1px;
   color: #bf5f65;
+  font-size: 77%;
+  margin: 4px 0 0 2px;
+  padding-left: 14px;
+}
+.field-action {
+  background: url('/static/img/icon-sprite.png') no-repeat left -59px;
   font-size: 77%;
   margin: 4px 0 0 2px;
   padding-left: 14px;

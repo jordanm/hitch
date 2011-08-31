@@ -156,6 +156,9 @@ define(['jquery', 'jquery.tools'], function($) {
                     messages = [{text: 'An unknown error has occurred.', tag: 'error'}];
                 }
             }
+            if(!messages.length) {
+                return;
+            }
             params = params || {};
             if(params.source) {
                 container = $(params.source).parents('.flash-message-container').first();

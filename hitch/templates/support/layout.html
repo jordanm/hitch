@@ -19,6 +19,11 @@ id="{{ field.auto_id }}" name="{{ field.html_name }}"
 data-metadata='{{ field.metadata|json }}'
 {%- endmacro -%}
 
+{% macro checkbox(field, metadata) %}
+<input id="{{ field.auto_id }}" type="checkbox" name="{{ field.html_name }}"
+  {% if field.initial_value and field.initial_value.value %}checked{% endif %}/>
+{% endmacro %}
+
 {% macro dateinput(field, metadata) %}
 <input id="{{ field.auto_id }}" type="date" name="{{ field.html_name }}"
   {% if field.initial_value and field.initial_value.value %}value="{{ field.initial_value.value }}"{% endif %}/>
@@ -39,6 +44,8 @@ $(function() {
 {% set metadata = field.metadata.get('widget') or {} %}
 {% if widget == 'Select' %}
 
+{% elif widget == 'CheckboxInput' %}
+  {{ checkbox(field, metadata) }}
 {% elif widget == 'PasswordInput' %}
   {{ textbox(field, metadata, type='password') }}
 {% elif widget == 'TextInput' %}
@@ -62,12 +69,19 @@ $(function() {
   <div class="field-widget-container">
     {{ caller() }}
     <div class="field-errors"></div>
+    {% if field.metadata.action %}
+    <div class="field-action"><a id="{{ field.metadata.action.id }}">{{ field.metadata.action.text }}</a></div>
+    {% endif %}
     {% if field.metadata.help %}
     <div class="field-help">{{ field.metadata.help }}</div>
     {% endif %}
   </div>
   <div class="clear"></div>
 </div>
+{% endmacro %}
+
+{% macro detached_checkbox(field) %}
+<span class="detached_checkbox_field">{{ checkbox(field) }} <label class="detached_checkbox" for="{{ field.auto_id }}">{{ field.metadata.label|d(field.label) }}</label></span>
 {% endmacro %}
 
 {% macro _render_formfields(_form, _fields, exclude=None) %}
@@ -101,7 +115,10 @@ $(function() {
 
 {% macro form_buttons(primary_label='Save') %}
 <div class="form-buttons">
-  <button data-save-action="save" type="submit"><span>{{ primary_label }}</span></button>
+  {% if caller %}
+    {{ caller() }}
+  {% endif %}
+  <button data-action="submit" type="submit"><span>{{ primary_label }}</span></button>
   <div class="clear"></div>
 </div>
 {% endmacro %}

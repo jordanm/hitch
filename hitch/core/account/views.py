@@ -79,7 +79,7 @@ class AccountViews(Views):
                     if request.is_ajax():
                         return response.error('invalid-account').json()
             elif request.is_ajax():
-                return response.error('invalid-credentials').json()
+                return response.collect(form).error('invalid-submission').json()
         else:
             form = forms.LoginForm(initial=initial)
             
