@@ -17,6 +17,7 @@
 id="{{ field.auto_id }}" name="{{ field.html_name }}" 
 {% if include_value and field.initial_value and field.initial_value.value %}value="{{ field.initial_value.value }}"{% endif %}
 data-metadata='{{ field.metadata|json }}'
+{% if field.metadata.datatype %}data-datatype="{{ field.metadata.datatype }}"{% endif %}
 {%- endmacro -%}
 
 {% macro checkbox(field, metadata) %}
@@ -49,11 +50,7 @@ $(function() {
 {% elif widget == 'PasswordInput' %}
   {{ textbox(field, metadata, type='password') }}
 {% elif widget == 'TextInput' %}
-  {% if field_type == 'DecimalField' %}
-  
-  {% else %}
-    {{ textbox(field, metadata) }}
-  {% endif %}
+  {{ textbox(field, metadata) }}
 {% elif widget == 'DateInput' or widget == 'DateTimeInput' %}
   {{ dateinput(field, metadata) }}
 {% else %}

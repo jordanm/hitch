@@ -10,6 +10,8 @@ class SeasonForm(ModelForm):
         fields = ('id', 'title', 'name', 'start_date', 'end_date', 'match_count')
         model = models.Season
         
+    match_count = forms.IntegerField(label='Total matches', min_value=1, max_value=100)
+        
     def __init__(self, **params):
         super(SeasonForm, self).__init__(**params)
         self.hide('id')

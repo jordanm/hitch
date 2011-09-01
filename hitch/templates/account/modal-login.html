@@ -1,5 +1,5 @@
 {% import 'support/layout.html' as layout %}
-{% call layout.modal('modal-login', 'Login') %}
+{% call layout.modal('modal-login', 'Sign in') %}
 <form id="modal-login-form" action="{{ url('account-login') }}" method="post">
   {{ layout.formfields(form, exclude=['persistent']) }}
   {% call layout.form_buttons('Login') %}

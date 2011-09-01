@@ -1,9 +1,4 @@
 {% import 'support/layout.html' as layout %}
 {% call layout.modal('modal-modify-season', 'Modify season') %}
-<div class="modal-content">
-  <form id="modal-modify-season-form" action="{{ url('modify-season') }}" method="post">
-    {{ layout.formfields(form) }}
-    <button type="submit">save</button>
-  </form>
-</div>
+  {{ layout.form('modal-modify-season-form', [form], url('modify-season')) }}
 {% endcall %}

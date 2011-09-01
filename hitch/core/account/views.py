@@ -63,6 +63,7 @@ class AccountViews(Views):
                     password=form.cleaned_data['password'])
                 if account:
                     if account.status == 'active':
+                        log.info('logging in %r', account)
                         account.login(request)
                         if form.cleaned_data.get('persistent', False):
                             account.persist_login(response)

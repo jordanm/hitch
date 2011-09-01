@@ -13,7 +13,7 @@ from django.forms.widgets import HiddenInput
 
 class FormMixin(object):
     metadata = {}
-    metadata_attr_targets = ['max_length', 'min_length', 'required']
+    metadata_attr_targets = ['max_length', 'max_value', 'min_length', 'min_value', 'required']
     metadata_processors = defaultdict(list)
     
     def __getitem__(self, name):
@@ -101,7 +101,7 @@ class FormMixin(object):
                 
         field_type = type(field).__name__
         for processor in self.metadata_processors.get(field_type, ()):
-            processor(metadata, field)
+            processor(metadata, field_type, field)
         return metadata
     
     def metadata_processor(classnames, processors=metadata_processors):
@@ -111,8 +111,14 @@ class FormMixin(object):
             return method
         return decorator
     
+    @metadata_processor(['IntegerField'])
+    def _process_number_fields(metadata, field_type, field):
+        metadata.update(datatype='number', preferred_width='80')
+        if field_type == 'IntegerField':
+            metadata['decimal_places'] = 0
+    
     @metadata_processor(['SlugField'])
-    def _process_slugfield(metadata, field):
+    def _process_slugfield(metadata, field_type, field):
         metadata['pattern'] = '^[-A-Za-z0-9_]*$'
     
 class Form(FormMixin, forms.Form):

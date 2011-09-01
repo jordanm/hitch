@@ -172,7 +172,6 @@ class Account(Model):
             
         session['__accountid__'] = self.id
         session['authentication-method'] = authentication
-                
         self.attach(request)
         self.update(last_login=datetime.now())
 

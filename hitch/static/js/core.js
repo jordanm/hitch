@@ -1,109 +1,5 @@
 define(['jquery', 'jquery.tools'], function($) {
-    function declare(implementation) {
-        var declaration = function(args) {
-            console.debug('called');
-            if(this instanceof arguments.callee) {
-                console.debug('callee correct');
-                if(typeof this.initialize == 'function') {
-                    console.debug(args);
-                    
-                    this.initialize.apply(this, args.callee ? args : arguments);
-                }
-            } else {
-                console.debug('called not correct; recalling with new');
-                return new arguments.callee(arguments);
-            }
-        };
-        if(typeof implementation != 'undefined') {
-            $.extend(declaration.prototype, implementation);
-        }
-        return declaration;
-    };
-    var modal = function(params) {
-        $.extend(this, {
-            closeable: true,
-            close_button: '.modal-close-button',
-            expose: {color: '#444', loadSpeed: 200, opacity: 0.8, zIndex: 500},
-            exposed: true,
-            modal: null,
-            onhide: null,
-            onload: null,
-            onshow: null,
-            remove_on_close: false,
-            show_immediately: false,
-            top: '10%'
-        });
-        $.extend(this, params);
-        if(this.source) {
-            this.load();
-        } else {
-            this.construct();
-        }
-    };
-    $.extend(modal.prototype, {
-        construct: function(loading) {
-            var modal = this.modal;
-            if(!this.closeable) {
-                modal.find(this.close_button).remove();
-            }
-            if(!modal.parents().length) {
-                $('body').append(modal);
-            }
-            if(!modal.data('overlay')) {
-                var options = {api: true, close: this.close_button, top: this.top};
-                if(this.exposed) {
-                    options.expose = this.expose;
-                }
-                if(!this.closeable) {
-                    options.closeOnClick = options.closeOnEsc = false;
-                }
-                if(this.remove_on_close) {
-                    options.onClose = function(event) {
-                        modal.remove();
-                    };
-                }
-                modal.overlay(options);
-            }
-            if(!loading && this.show_immediately) {
-                this.show();
-            }
-        },
-        hide: function(remove) {
-            this.modal.overlay().close();
-            if(remove) {
-                this.modal.remove();
-            } else if(this.onhide) {
-                this.onhide(self.modal);
-            }
-        },
-        load: function() {
-            var self = this, source = this.source;
-            $.ajax({
-                cache: false,
-                data: source.data,
-                dataType: 'html',
-                type: source.method || 'GET',
-                url: source.url,
-                success: function(response) {
-                    self.modal = $(response);
-                    self.construct(true);
-                    if(self.onload) {
-                        self.onload(self.modal);
-                    }
-                    if(self.show_immediately) {
-                        self.show();
-                    }
-                }
-            });                    
-        },
-        show: function() {
-            this.modal.overlay().load();
-            if(this.onshow) {
-                this.onshow(this.modal);
-            }
-        }
-    });
-    return {
+    var core = {
         cookie: function(name, value, options) {
             if(typeof value != 'undefined') {
                 options = options || {};
@@ -146,7 +42,38 @@ define(['jquery', 'jquery.tools'], function($) {
                 });
             }
         },
-        declare: declare,
+        declare: function() {
+            var constructor = function() {
+                if(this instanceof arguments.callee) {
+                    var candidate = arguments[0];
+                    if(typeof this.initialize == 'function' && !(candidate && candidate.__inheriting__)) {
+                        if(candidate && candidate.__args__) {
+                            this.initialize.apply(this, arguments[0].__args__);
+                        } else {
+                            this.initialize.apply(this, arguments);
+                        }
+                    }
+                } else {
+                    return new arguments.callee({__args__: arguments});
+                }
+            };
+            var argument = arguments[0];
+            if(typeof argument == 'function') {
+                constructor.prototype = new argument({__inheriting__: true});
+                constructor.prototype.constructor = constructor;
+                constructor.prototype.__superclass__ = argument;
+                if(typeof constructor.prototype.supercall != 'function') {
+                    constructor.prototype.supercall = function(method) {
+                        return this.__superclass__.prototype[method].apply(this, Array.prototype.slice.call(arguments, 1));
+                    };
+                }
+                argument = arguments[1];
+            }
+            if(typeof argument == 'object') {
+                $.extend(constructor.prototype, argument);
+            }
+            return constructor;
+        },
         flash: function(messages, params) {
             var container, permanent, receiver;
             if(!$.isArray(messages)) {
@@ -202,11 +129,10 @@ define(['jquery', 'jquery.tools'], function($) {
                     modal.show();
                 } else {
                     params.show_immediately = true;
-                    $(this).data('modal', new self.modal(params));
+                    $(this).data('modal', self.modal(params));
                 }
             });
         },
-        modal: modal,
         post: function(params) {
             var data = '', self = this;
             if(params.data) {
@@ -264,5 +190,93 @@ define(['jquery', 'jquery.tools'], function($) {
                 return api;            
             }        
         }
-    };    
+    };
+    core.modal = core.declare({
+        initialize: function(params) {
+            var self = this;
+            $.extend(self, {
+                closeable: true,
+                close_button: '.modal-close-button',
+                expose: {color: '#444', loadSpeed: 200, opacity: 0.8, zIndex: 500},
+                exposed: true,
+                modal: null,
+                onhide: null,
+                onload: null,
+                onshow: null,
+                remove_on_close: false,
+                show_immediately: false,
+                top: '10%'
+            });
+            $.extend(self, params);
+            if(self.source) {
+                self.load();
+            } else {
+                self.construct();
+            }
+        },
+        construct: function(loading) {
+            var self = this, modal = this.modal;
+            if(!self.closeable) {
+                modal.find(self.close_button).remove();
+            }
+            if(!modal.parents().length) {
+                $('body').append(modal);
+            }
+            if(!modal.data('overlay')) {
+                var options = {api: true, close: self.close_button, top: self.top};
+                if(self.exposed) {
+                    options.expose = self.expose;
+                }
+                if(!self.closeable) {
+                    options.closeOnClick = options.closeOnEsc = false;
+                }
+                if(self.remove_on_close) {
+                    options.onClose = function(event) {
+                        modal.remove();
+                    };
+                }
+                modal.overlay(options);
+            }
+            if(!loading && self.show_immediately) {
+                self.show();
+            }
+        },
+        hide: function(remove) {
+            var self = this;
+            self.modal.overlay().close();
+            if(remove) {
+                self.modal.remove();
+            } else if(self.onhide) {
+                self.onhide(self.modal);
+            }
+        },
+        load: function() {
+            var self = this, source = this.source;
+            $.ajax({
+                cache: false,
+                data: source.data,
+                dataType: 'html',
+                type: source.method || 'GET',
+                url: source.url,
+                success: function(response) {
+                    self.modal = $(response);
+                    self.construct(true);
+                    if(self.onload) {
+                        self.onload(self.modal);
+                    }
+                    if(self.show_immediately) {
+                        self.show();
+                    }
+                }
+            });                    
+        },
+        show: function() {
+            var self = this;
+            self.modal.overlay().load();
+            if(self.onshow) {
+                self.onshow(self.modal);
+            }
+        }
+    });
+    return core;    
 });

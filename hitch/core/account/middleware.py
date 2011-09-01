@@ -8,6 +8,7 @@ PLOGIN_COOKIE_NAME = settings.PLOGIN_COOKIE_NAME
 class AuthenticationMiddleware(object):
     def process_request(self, request):
         request.account = None
+        print request.session.get('__accountid__')
         try:
             account = Account.objects.get(id=request.session['__accountid__'])
         except (Account.DoesNotExist, KeyError):
