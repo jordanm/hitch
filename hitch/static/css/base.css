@@ -42,3 +42,21 @@ ul.inline-list li:last-child {
 .flash-message-receiver {
   display: none;
 }
+
+.content-block {
+  background-color: #f3f1ee;
+  border-color: #e5e5e5 #ccc;
+  border-style: dotted;
+  border-width: 1px;
+}
+.content-block-header {
+  background-color: #efedea;
+  border-bottom: 1px dotted #e5e5e5;
+  padding: 14px;
+}
+.content-block-header h1 {
+  font: 20px serif;
+}
+.content-block-content {
+  padding: 14px;
+}

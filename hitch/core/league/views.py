@@ -65,7 +65,15 @@ class LeagueViews(Views):
         except Season.DoesNotExist:
             return response.redirect()
         
-        return response.render('league/season.html', season=season)
+        context = {'season': season}
+        if season.has_standings:
+            pass
+        else:
+            teams = season.teams.order_by('-status', 'name')
+            if not response.permit('admin-season'):
+                teams = teams.exclude(status='inactive')
+            context['teams'] = teams
+        return response.render('league/season.html', context)
     
     @viewable('seasons', r'^seasons')
     def seasons(self, request, response):

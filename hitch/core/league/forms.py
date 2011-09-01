@@ -7,10 +7,19 @@ from hitch.support.forms import Form, ModelForm
 
 class SeasonForm(ModelForm):
     class Meta:
-        fields = ('id', 'title', 'name', 'start_date', 'end_date', 'match_count')
+        fields = ('id', 'title', 'name', 'start_date', 'match_count')
         model = models.Season
         
-    match_count = forms.IntegerField(label='Total matches', min_value=1, max_value=100)
+    metadata = {
+        'fields': {
+            'title': {'help': 'A descriptive title for this season.'},
+            'name': {'slug_source_field': 'title'},
+            'start_date': {'help': 'The scheduled date for the first match of the season.'},
+            'match_count': {'help': 'The total number of matches in this season.'},
+        }
+    }
+        
+    match_count = forms.IntegerField(label='Total matches', initial=10, min_value=1, max_value=100)
         
     def __init__(self, **params):
         super(SeasonForm, self).__init__(**params)

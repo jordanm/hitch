@@ -1,4 +1,4 @@
-define(['jquery', 'jquery.tools'], function($) {
+define(['jquery', 'jquery.tools', 'jquery.textchange'], function($) {
     var core = {
         cookie: function(name, value, options) {
             if(typeof value != 'undefined') {
@@ -41,7 +41,7 @@ define(['jquery', 'jquery.tools'], function($) {
                     console.debug(argument);
                 });
             }
-        },
+        },        
         declare: function() {
             var constructor = function() {
                 if(this instanceof arguments.callee) {
@@ -191,20 +191,44 @@ define(['jquery', 'jquery.tools'], function($) {
             }        
         }
     };
-    core.modal = core.declare({
+    core.object = core.declare({
+        bind: function() {
+            var self = this;
+            if(!self._event_element) {
+                self._event_element = $('<div>');
+            }
+            self._event_element.bind.apply(self._event_element, arguments);
+            return self;
+        },
+        trigger: function(event) {
+            var self = this;
+            if(self._event_element) {
+                self._event_element.triggerHandler(event, Array.prototype.slice.call(arguments, 1));
+            }        
+        },
+        _bind_events: function(params, prefix) {
+            var self = this, prefix = prefix || 'on';
+            $.each(params, function(name, value) {
+                if(name.length > prefix.length && name.substr(0, prefix.length) == prefix) {
+                    self.bind(name, value);
+                    params[name] = undefined;
+                }
+            });            
+        }
+    });
+    core.modal = core.declare(core.object, {
         initialize: function(params) {
             var self = this;
+            self._bind_events(params);
             $.extend(self, {
                 closeable: true,
                 close_button: '.modal-close-button',
                 expose: {color: '#444', loadSpeed: 200, opacity: 0.8, zIndex: 500},
                 exposed: true,
                 modal: null,
-                onhide: null,
-                onload: null,
-                onshow: null,
                 remove_on_close: false,
                 show_immediately: false,
+                title: null,
                 top: '10%'
             });
             $.extend(self, params);
@@ -230,13 +254,16 @@ define(['jquery', 'jquery.tools'], function($) {
                 if(!self.closeable) {
                     options.closeOnClick = options.closeOnEsc = false;
                 }
-                if(self.remove_on_close) {
-                    options.onClose = function(event) {
-                        modal.remove();
-                    };
-                }
+                options.onClose = function(event) {
+                    if(self.remove_on_close) {
+                        model.remove();
+                    } else {
+                        self.trigger('onclose', self);
+                    }
+                };
                 modal.overlay(options);
             }
+            modal.data('modal', self);
             if(!loading && self.show_immediately) {
                 self.show();
             }
@@ -246,8 +273,6 @@ define(['jquery', 'jquery.tools'], function($) {
             self.modal.overlay().close();
             if(remove) {
                 self.modal.remove();
-            } else if(self.onhide) {
-                self.onhide(self.modal);
             }
         },
         load: function() {
@@ -261,9 +286,7 @@ define(['jquery', 'jquery.tools'], function($) {
                 success: function(response) {
                     self.modal = $(response);
                     self.construct(true);
-                    if(self.onload) {
-                        self.onload(self.modal);
-                    }
+                    self.trigger('onload', self);
                     if(self.show_immediately) {
                         self.show();
                     }
@@ -272,10 +295,11 @@ define(['jquery', 'jquery.tools'], function($) {
         },
         show: function() {
             var self = this;
-            self.modal.overlay().load();
-            if(self.onshow) {
-                self.onshow(self.modal);
+            if(self.title) {
+                self.modal.find('.modal-header h1').html(self.title);
             }
+            self.modal.overlay().load();
+            self.trigger('onshow', self);
         }
     });
     return core;    

@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
   <meta name="description" content=""/>
   
-  <title>{% block title %}{{ page_title }}{% endblock %}</title>
+  <title>{% if page_title %}{{ page_title }} | {% endif %}Austin 42 Club</title>
   
   <script type="text/javascript">var require = {baseUrl: "/static/js"};</script>
   <script data-main="{{ js_module }}" src="/static/js/require-jquery.js"></script>
@@ -38,7 +38,9 @@
       </ul>
     </div>
     <div id="title-bar">
-      <h1>Welcome!</h1>
+      {% block title_bar %}
+      <h1>{{ full_page_title or page_title }}</h1>
+      {% endblock %}
     </div>
     <div id="page-content">
       {% block content %}{% endblock %}

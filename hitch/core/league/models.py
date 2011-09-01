@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db import models
 from django.db.transaction import commit_on_success
 
+from hitch.core.account.models import Account
 from hitch.support.models import CharField, Manager, Model, SlugField, UniqueIdentifierField
 from hitch.support.util import choices
 
@@ -44,6 +45,10 @@ class Season(Model):
     
     def __unicode__(self):
         return self.name
+    
+    @property
+    def has_standings(self):
+        return (self.status in ('active', 'finished'))
     
     @commit_on_success
     def create_team(self, name, title, accounts):
@@ -141,6 +146,10 @@ class Team(Model):
     def __unicode__(self):
         return self.name
     
+    @property
+    def members(self):
+        return Account.objects.filter(team_memberships__team=self).order_by('fullname')
+    
 class Member(Model):
     class Meta:
         app_label = 'core'
@@ -149,7 +158,7 @@ class Member(Model):
     id = UniqueIdentifierField()
     season = models.ForeignKey(Season, related_name='members')
     team = models.ForeignKey(Team, related_name='_members')
-    account = models.ForeignKey('core.Account')
+    account = models.ForeignKey('core.Account', related_name='team_memberships')
     
     def __unicode__(self):
         return '%s - %s' % (self.team.name, self.account.fullname)
@@ -199,6 +208,22 @@ class Round(Model):
     def __unicode__(self):
         return '%s (round %d)' % (self.match, self.round)
 
+fake_teams = [
+    ('Saints', ('Alpha Bravo', 'Bravo Charlie')),
+    ('Cowboys', ('Charlie Delta', 'Delta Echo')),
+    ('Patriots', ('Echo Foxtrot', 'Foxtrot Golf')),
+    ('Steelers', ('Golf Hotel', 'Hotel India')),
+    ('Panthers', ('India Juliet', 'Juliet Kilo')),
+    ('Seahawks', ('Kilo Lima', 'Lima Mike')),
+    ('Redskins', ('Mike November', 'November Oscar')),
+    ('Dolphins', ('Oscar Papa', 'Papa Quebec')),
+    ('Bears', ('Quebec Romeo', 'Romeo Sierra')),
+    ('Giants', ('Sierra Tango', 'Tango Uniform')),
+    ('Vikings', ('Uniform Victor', 'Victor Whiskey')),
+    ('Packers', ('Whiskey Xray', 'Xray Yankee')),
+]
+extra_fake_team = ('Raiders', ('Yankee Zulu', 'Zulu Alpha'))
+
 @commit_on_success
 def generate_fake_data(with_byes=False, wipe=False):
     from hitch.core.account.models import Account
@@ -209,21 +234,17 @@ def generate_fake_data(with_byes=False, wipe=False):
         Team.objects.all().delete()
         Season.objects.all().delete()
         Account.objects.filter(email__endswith='@test.com').delete()
-    
-    chars = 'abcdefghijklmnopqrst'
-    if with_byes:
-        chars += 'uv'
-    
-    season = Season.objects.create(name='test_season', title='Test Season', match_count=8,
-        start_date=datetime.now(), end_date=datetime.now()) 
-    
-    accounts = {}
-    for char in chars:
-        accounts[char] = Account.objects.create(fullname=char, email='%s@test.com' % char, password=char*8)
-    
-    teams = []
-    for alpha, beta in [(chars[i], chars[i+1]) for i in range(0, len(chars), 2)]:
-        name = alpha + beta
-        teams.append(season.create_team(name, name, [accounts[alpha], accounts[beta]]))
         
+    data = list(fake_teams)
+    if with_byes:
+        data.append(extra_fake_team)
+        
+    season = Season.objects.create(name='fake_season', title='Fake Season', match_count=8,
+        start_date=datetime.now())
+    
+    for teamname, names in data:
+        accounts = []
+        for name in names:
+            accounts.append(Account.objects.create(fullname=name, email='%s@test.com' % name.replace(' ', ''), password=name))
+        season.create_team(teamname, teamname, accounts)
     return season

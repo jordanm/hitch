@@ -1,0 +1,12 @@
+{% macro team_list(teams) %}
+<ul class="team-list">
+  {% for team in teams %}
+  <li>
+    <h1>{{ team.name }} - {{ team.title }}</h1>
+    {% for member in team.members %}
+    <h2>{{ member.fullname }}</h2>
+    {% endfor %}
+  </li>
+  {% endfor %}
+</ul>
+{% endmacro %}

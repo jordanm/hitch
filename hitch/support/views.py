@@ -76,6 +76,10 @@ class Response(object):
         self.messages.append((text, tag))
         return self
     
+    def permit(self, permission):
+        account = self.request.account
+        return (account and account.superuser)
+        
     def redirect(self, url='/'):
         self._apply_messages()
         return self._apply_cookies(HttpResponseRedirect(url))

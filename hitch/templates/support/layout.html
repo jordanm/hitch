@@ -13,6 +13,23 @@
 </div>
 {% endmacro %}
 
+{% macro content_block(id, title, classes='') %}
+<div id="{{ id }}" class="content-block {{ classes }}">
+  <div class="content-block-header">
+    {% if title %}<h1>{{ title }}</h1>{% endif %}
+  </div>
+  <div class="content-block-content">
+    {{ caller() }}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro uploader() %}
+<div class="uploader">
+  
+</div>
+{% endmacro %}
+
 {%- macro _field_attrs(field, metadata, include_value=True) -%}
 id="{{ field.auto_id }}" name="{{ field.html_name }}" 
 {% if include_value and field.initial_value and field.initial_value.value %}value="{{ field.initial_value.value }}"{% endif %}
@@ -23,16 +40,6 @@ data-metadata='{{ field.metadata|json }}'
 {% macro checkbox(field, metadata) %}
 <input id="{{ field.auto_id }}" type="checkbox" name="{{ field.html_name }}"
   {% if field.initial_value and field.initial_value.value %}checked{% endif %}/>
-{% endmacro %}
-
-{% macro dateinput(field, metadata) %}
-<input id="{{ field.auto_id }}" type="date" name="{{ field.html_name }}"
-  {% if field.initial_value and field.initial_value.value %}value="{{ field.initial_value.value }}"{% endif %}/>
-<script type="text/javascript">
-$(function() {
-    $('#{{ field.auto_id }}').dateinput();
-});
-</script>
 {% endmacro %}
 
 {% macro textbox(field, metadata, type='text') %}
@@ -52,7 +59,7 @@ $(function() {
 {% elif widget == 'TextInput' %}
   {{ textbox(field, metadata) }}
 {% elif widget == 'DateInput' or widget == 'DateTimeInput' %}
-  {{ dateinput(field, metadata) }}
+  {{ textbox(field, metadata, 'date') }}
 {% else %}
   {{ widget }}
 {% endif %}

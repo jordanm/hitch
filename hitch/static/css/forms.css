@@ -24,7 +24,7 @@ button img {
   top: 2px;
 }
 
-input[type=text], input[type=password] {
+input[type=text], input[type=password], input.date {
   background: #f2f0ed;
   border: 1px solid #aaa;
   border-radius: 3px;
@@ -34,7 +34,8 @@ input[type=text], input[type=password] {
   padding: 3px 6px;
 }
 input[type=text]:enabled:hover, input[type=text]:enabled:focus,
-input[type=password]:enabled:hover, input[type=password]:enabled:focus {
+input[type=password]:enabled:hover, input[type=password]:enabled:focus,
+input.date:enabled:hover, input.date:enabled:focus {
   border: 1px solid #666;
 }
 
@@ -43,7 +44,8 @@ label.detached_checkbox {
   vertical-align: top;
 }
 
-.field.invalid input[type=text], .field.invalid input[type=password] {
+.field.invalid input[type=text], .field.invalid input[type=password],
+.field.invalid input.date {
   border: 1px solid #bf5f65;
 }
 

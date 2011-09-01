@@ -1,26 +1,54 @@
 define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
     core.widget = core.declare({
         resize_on_modals: false,
-        validation_event: 'blur',
+        validation_events: 'blur',
         initialize: function(field) {
             var self = this;
             self.field = field;        
         },
         bind: function() {
             var self = this;
-            self.field.element.bind(self.validation_event, function(event) {
+            self.field.element.bind(self.validation_events, function(event) {
                 self.field.validate();
             });
         },
         construct: function() {
         },
-        validate: function() {
+        get_value: function() {
+            return this.field.element.val();
+        },
+        set_value: function(value) {
+            this.field.element.val(value);
+        },
+        validate: function(value) {
             return true;        
         }
     });
+    core.widget.checkbox = core.declare(core.widget, {
+        get_value: function() {
+            return this.field.element.is(':checked');
+        },
+        set_value: function(value) {
+            this.field.element.attr('checked', value);
+        }
+    });
+    core.widget.date = core.declare(core.widget, {
+        preferred_width: 190,
+        construct: function() {
+            return this.field.element.dateinput();        
+        }
+    });
     core.widget.number = core.declare(core.widget, {
-        validate: function() {
-            var self = this, field = this.field, value = this.field.value();
+        preferred_width: 80,
+        validation_events: 'blur textchange',
+        validation_pattern: /^-?[0-9]*(?:[.][0-9]+)?/,
+        validate: function(value) {
+            var self = this, field = this.field;
+            var numeric_value = Number(value.replace(',', ''));
+            if($.isNaN(numeric_value)) {
+                field.mark_invalid([field.label + ' must numeric.']);
+                return false;
+            }
             if(typeof field.min_value == 'number') {
                 if(value < field.min_value) {
                     field.mark_invalid([field.label + ' must be greater then or equal to ' + field.min_value + '.']);
@@ -38,8 +66,9 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
     });
     core.widget.textbox = core.declare(core.widget, {
         resize_on_modals: true,
-        validate: function() {
-            var self = this, field = this.field, value = this.field.value();
+        validation_events: 'blur textchange',
+        validate: function(value) {
+            var self = this, field = this.field;
             if(typeof field.min_length == 'number') {
                 if(value.length < field.min_length) {
                     field.mark_invalid([field.label + ' must be at least ' + field.min_length + ' characters long.']);
@@ -62,23 +91,43 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
             return true;
         }
     });
+    core.widget.slug = core.declare(core.widget.textbox, {
+        slugify: function(value) {
+            value = value.replace(/[^\w\s-]/g, '').replace(/[-\s]+/g, '-').replace(/^[-\s]*/, '');
+            return value.replace(/[-\s]*$/, '').toLowerCase();        
+        },
+        construct: function() {
+            var self = this;
+            if(self.field.slug_source_field) {
+                var source = self.field.form.fields[self.field.slug_source_field].element;
+                source.bind('textchange', function() {
+                    self.field.element.val(self.slugify(source.val()));
+                    self.field.validate();
+                });
+            }
+        }
+    });
     core.field = core.declare({
         widgets: [
+            ['input[type=checkbox]', core.widget.checkbox],
+            ['input[type=date]', core.widget.date],
             ['input[type=text][data-datatype=number]', core.widget.number],
+            ['input[type=text][data-datatype=slug]', core.widget.slug],
             ['input[type=text],input[type=password]', core.widget.textbox],
             ['textarea', core.widget.textarea],
             ['select', core.widget.selectbox],
             ['input', core.widget.textbox]
         ],
         initialize: function(form, element, params) {
-            var self = this;
+            var self = this, reconstructed_element;
             $.extend(self, {
                 element: element,
                 form: form,
+                initial_value: null,
                 label: element.parents('.field').find('label').text().replace(':', ''),
                 name: element.attr('name'),
                 selector: null,
-                status: 'empty',
+                status: 'unknown',
                 widget: null
             });
             $.extend(self, element.data('metadata'));
@@ -90,18 +139,27 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
                     return false;
                 }
             });
-            self.widget.construct();
+            self.initial_value = self.get_value();
+            reconstructed_element = self.widget.construct();
+            if(reconstructed_element) {
+                self.element = reconstructed_element;
+            }
             self.widget.bind();
-            self.field_container = element.parents('.field');
+            self.field_container = self.element.parents('.field');
             self.errors_container = self.field_container.find('.field-errors');
             self.layout();
-            element.data('field', self);
+            self.element.data('field', self);
+        },
+        get_value: function() {
+            return this.widget.get_value();
         },
         layout: function() {
             var self = this;
             if(self.preferred_width) {
                 self.element.width(self.preferred_width);
-            } else if(self.widget.resize_on_modals && self.element.parents('.modal').length > 0) {
+            } else if(self.widget.preferred_width) {
+                self.element.width(self.widget.preferred_width);
+            } else if(self.widget.resize_on_modals && self.form.modal) {
                 self.element.width(self.field_container.width() - self.element.position().left + 2);
             }
         },
@@ -120,20 +178,31 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
             self.field_container.removeClass('invalid');
             self.errors_container.empty();        
         },
+        mark_unknown: function() {
+            var self = this;
+            self.status = 'unknown';
+            self.field_container.removeClass('valid invalid');
+            self.errors_container.empty();
+        },
+        reset: function() {
+            var self = this;
+            self.mark_unknown();
+            self.set_value(self.initial_value);
+        },
+        set_value: function(value) {
+            this.widget.set_value(value);
+        },
         validate: function() {
-            var self = this, value = this.value();
+            var self = this, value = this.get_value();
             if(self.required && !value) {
                 self.mark_invalid(['This field is required.']);
                 return false;
             }
-            if(!self.widget.validate()) {
+            if(!self.widget.validate(value)) {
                 return false;
             }
             self.mark_valid();
             return true;
-        },
-        value: function() {
-            return this.element.val();
         }
     });
     core.button = core.declare({
@@ -196,16 +265,26 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
                 default_button: null,
                 fields: {},
                 form: form,
+                modal: null,
                 onerror: null,
                 onpostsubmit: null,
                 onpresubmit: null,
                 onsuccess: null,
                 redirect_on_success: null,
+                reset_on_modal_close: true,
                 submittal_button: null
             });
             $.extend(self, params);
             self.method = self.method || form.attr('method') || 'POST';
             self.url = self.url || form.attr('action');
+            if(form.parents('.modal').length) {
+                self.modal = form.parents('.modal').data('modal');
+                if(self.reset_on_modal_close) {
+                    self.modal.bind('onclose', function() {
+                        self.reset();
+                    });
+                }
+            }
             form.find('input[name],select[name],textarea[name]').not('[type=hidden]').each(function(index) {
                 var field = core.field(self, $(this));
                 self.fields[field.name] = field;
@@ -244,6 +323,12 @@ define(['jquery', 'jquery.tools', 'core'], function($, _, core) {
             if(self.onpresubmit) {
                 self.onpresubmit();
             }            
+        },
+        reset: function() {
+            var self = this;
+            $.each(self.fields, function(name, field) {
+                field.reset();
+            });
         },
         serialize: function() {
             var data = this.form.serializeArray();

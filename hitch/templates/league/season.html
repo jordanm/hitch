@@ -1,5 +1,12 @@
 {% extends 'shell.html' %}
+{% import 'support/blocks.html' as blocks %}
+{% import 'support/layout.html' as layout %}
 {% set js_module = 'views/season' %}
+{% set page_title = season.title %}
 {% block content %}
+
+{% call layout.content_block('team-list', 'Teams') %}
+  {{ blocks.team_list(teams) }}
+{% endcall %}
 
 {% endblock content %}

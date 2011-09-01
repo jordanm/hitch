@@ -113,12 +113,13 @@ class FormMixin(object):
     
     @metadata_processor(['IntegerField'])
     def _process_number_fields(metadata, field_type, field):
-        metadata.update(datatype='number', preferred_width='80')
+        metadata.update(datatype='number')
         if field_type == 'IntegerField':
             metadata['decimal_places'] = 0
     
     @metadata_processor(['SlugField'])
     def _process_slugfield(metadata, field_type, field):
+        metadata['datatype'] = 'slug'
         metadata['pattern'] = '^[-A-Za-z0-9_]*$'
     
 class Form(FormMixin, forms.Form):

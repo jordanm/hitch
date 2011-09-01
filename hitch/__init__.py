@@ -23,7 +23,7 @@ post_syncdb.disconnect(create_superuser, sender=models,
 request_local_context = local()
 request_local_context.request = None
 
-@receives_signals(pre_delete)
+#@receives_signals(pre_delete)
 def _log_database_deletes(sender, **params):
     instance = params['instance']
     identity = identify_instance(instance)

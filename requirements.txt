@@ -1,4 +1,5 @@
-Django
+django
 jinja2
 psycopg2
-South
+pyyaml
+south
